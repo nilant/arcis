@@ -1,0 +1,16 @@
+.cache
+.devcontainer
+.vscode
+bin
+build
+data
+results
+doc
+models
+tests
+README.md
+env.list
+*.lic
+*.zip
+*.gz
+Makefile

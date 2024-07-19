@@ -1,0 +1,35 @@
+merge_cells = true
+
+# unique identifier (for merging)
+instance_index = ["name"]
+
+# columns order for instaces latex table
+instance_order = ["nvertices", "narcs", "nedges", "nreq_arcs", "nreq_edges", "tot_services"]
+instance_stats = []
+
+# columns order for latex results table
+models_order = []
+
+# columns order for results latex table
+algos_order = ["lb", "vidal_obj", "vidal_time", "rt_obj", "rt_time", "ls_obj", "ls_time", "gurobi_time", "total_time", "nroutes", "iter_ls", "time_ls", "best_time_ls", "best_iter_ls"]
+
+# models
+models = []
+
+# algorithms
+algos = ["bin/arcis"]
+
+# timelimit
+timelimit = 3600
+
+# iterlimit
+iterlimit = 1000
+
+# memlimit
+memlimit = 16
+
+# threads (0 = all)
+threads = 1
+
+# seed
+seed = 42

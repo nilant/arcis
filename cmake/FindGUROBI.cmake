@@ -1,0 +1,25 @@
+find_path(
+        GUROBI_INCLUDE_DIRS
+        NAMES gurobi_c.h
+        HINTS ${GUROBI_DIR} $ENV{GUROBI_HOME}
+        PATH_SUFFIXES include)
+
+find_library(
+        GUROBI_LIBRARY
+        NAMES gurobi gurobi100
+        HINTS ${GUROBI_DIR} $ENV{GUROBI_HOME}
+        PATH_SUFFIXES lib)
+
+find_library(
+        GUROBI_CPP_LIBRARY
+        NAMES gurobi_c++
+        HINTS ${GUROBI_DIR} $ENV{GUROBI_HOME}
+        PATH_SUFFIXES lib
+)
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(GUROBI DEFAULT_MSG GUROBI_LIBRARY GUROBI_INCLUDE_DIRS GUROBI_CPP_LIBRARY)
+
+if (NOT GUROBI_FOUND)
+    message(FATAL_ERROR "Could not find GUROBI")
+endif()
