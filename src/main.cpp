@@ -16,7 +16,9 @@ int main(int argc, char* argv[]) {
         std::exit(1);
     }
 
-    Instance inst = read_json(args.input_file); 
+    Instance inst = read_json(args.input_file);
+
+	args.timelimit = inst.tot_services;
     
     fmt::print("\nOptimizing {} with timelimit={}, iterlimit={}, memlimit={}, threads={}, seed={}...\n", 
                 inst.name, args.timelimit, args.iterlimit, args.memlimit, args.threads, args.seed);

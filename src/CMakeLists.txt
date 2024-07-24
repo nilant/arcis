@@ -49,7 +49,8 @@ add_executable(test_route main2.cpp
                 ../libs/vidal/Client.cpp
                 ../libs/vidal/Params.cpp
                 ../libs/vidal/Vehicle.cpp
-                ../libs/vidal/Individu.cpp)
+                ../libs/vidal/Individu.cpp
+)
 
 target_include_directories(test_route PUBLIC ${GUROBI_INCLUDE_DIRS})
 target_link_libraries(test_route PUBLIC ${GUROBI_CPP_LIBRARY} ${GUROBI_LIBRARY} fmt::fmt -pthread)

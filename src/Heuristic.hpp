@@ -4,4 +4,4 @@
 #include "Result.hpp"
 #include "cli.hpp"
 
-Result heur(Instance const& inst, Args const& args);
+Result heur(Instance& inst, Args const& args);

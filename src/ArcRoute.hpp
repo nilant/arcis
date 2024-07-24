@@ -3,6 +3,7 @@
 #include <vector>
 #include "Instance.hpp"
 #include "mdarray.hpp"
+#include "unordered_set"
 
 struct ArcRoute {
 
@@ -10,14 +11,16 @@ struct ArcRoute {
     int vehicle{-1};
     int subperiod{-1};
     bool original{false};
+	std::unordered_set<int> mipStart;
 
     std::vector<std::pair<int, int>> full_path;
     mdarray<int, 1> _links;
 
     explicit ArcRoute(Instance const& inst, ArcRoute const& other, int start, int end);
     explicit ArcRoute(Instance const& inst, std::vector<std::pair<int,int>> const& vidal_route, int veh, int sp, bool original);
-    void insert_link(Instance const& inst, std::pair<int, int> link, int pos);
-    void remove_link(Instance const& inst, std::pair<int, int> link);
+
+	void insert_links(Instance const& inst, std::vector<std::pair<int, int>> vecLinks, int bestNode, int pos);
+	void remove_links(Instance const& inst, int fromLink, int toLink);
     bool contains(int id) const;
     int& links(int id);
     int links(int id) const;

@@ -12,7 +12,7 @@ RTResult::RTResult(Instance const& inst, mdarray<GRBVar, 2> const& y, mdarray<GR
     for (int r = 0; r < y_val.dimension(0); ++r) {
         int sp = routes[r].subperiod;
         for (int t = 0; t < y_val.dimension(1); ++t) {
-            if (routes[r].original || inst.sp_matrix(sp, t)) {
+            if (/*routes[r].original ||*/ inst.sp_matrix(sp, t)) {
                 y_val(r, t) = std::lrint(y(r, t).get(GRB_DoubleAttr_X));
             }
         }
@@ -37,9 +37,14 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, Args const& args, std::vecto
         // y's variables
         for (int r = 0; r < routes.size(); ++r) {
             int sp = routes[r].subperiod;
+
             for (int t = 0; t < inst.horizon; ++t) {
-                if (routes[r].original || inst.sp_matrix(sp, t)) {
+                if (/*routes[r].original ||*/ inst.sp_matrix(sp, t)) {
                     y(r, t) = model.addVar(0, 1, 0, GRB_BINARY, fmt::format("y_{}_{}", r, t));
+					if(routes[r].mipStart.contains(t)){
+						y(r, t).set(GRB_DoubleAttr_Start, 1.0);
+						// y(r, t).set(GRB_DoubleAttr_VarHintVal, 0.0);
+					}
                 }
             }
         }
@@ -56,7 +61,7 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, Args const& args, std::vecto
         for (int t = 0; t < inst.horizon; ++t) {
             for (int r = 0; r < routes.size(); ++r) {
                 int sp = routes[r].subperiod;
-                if (routes[r].original || inst.sp_matrix(sp, t)) {
+                if (/*routes[r].original ||*/ inst.sp_matrix(sp, t)) {
                     expr += routes[r].cost * y(r, t);
                 }
             }
@@ -67,17 +72,17 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, Args const& args, std::vecto
             }
         }
         model.setObjective(expr, GRB_MINIMIZE);
+	    expr.clear();
 
         //(6)
         for (int l = 0; l < inst.nreq_links; ++l) {
             for (int s = 0; s < inst.nsubperiods; ++s) {
-                GRBLinExpr expr{0};
                 if (inst.frequencies(l, s) != 0) {
                     for (int t : inst.subperiods[s]) {
                         expr += x(l, t);
                     }
-
                     model.addConstr(expr == inst.frequencies(l, s), fmt::format("6_{}_{}", l, s));
+	                expr.clear();
                 }
             }
         }
@@ -85,16 +90,16 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, Args const& args, std::vecto
         //(7)
         for (int l = 0; l < inst.nreq_links; ++l) {
             for (int t = 0; t < inst.horizon; ++t) {
-                GRBLinExpr expr{0};
                 for (int r = 0; r < routes.size(); ++r) {
                     int sp = routes[r].subperiod;
-                    if (routes[r].original || inst.sp_matrix(sp, t)) {
+                    if (/*routes[r].original ||*/ inst.sp_matrix(sp, t)) {
                         if (routes[r].contains(l)) {
                             expr += y(r, t);
                         }
                     }
                 }
                 model.addConstr(x(l, t) <= expr, fmt::format("7_{}_{}", l, t));
+	            expr.clear();
             }
         }
 
@@ -123,6 +128,7 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, Args const& args, std::vecto
         // }
     
         model.set(GRB_IntParam_Threads, args.threads);
+		// model.update();
 
     } catch (GRBException& e) {
         fmt::print("Error code={}\n", e.getErrorCode());
