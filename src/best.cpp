@@ -18,7 +18,8 @@ BestSolution::BestSolution(Instance const& inst, std::vector<ArcRoute> const& ro
             }
         }
 
-        best_routes.push_back(best);
+		//if(!best.empty())
+		best_routes.push_back(best);
         gurobi_time = rt_res.runtime;
     }
 }

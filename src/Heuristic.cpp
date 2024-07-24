@@ -12,7 +12,7 @@
 #include "timer.hpp"
 
 
-Result heur(Instance const& inst, Args const& args) {
+Result heur(Instance& inst, Args const& args) {
 
 // -------------------------------------------------------- //
 	Timer timer{};
@@ -42,19 +42,17 @@ Result heur(Instance const& inst, Args const& args) {
 	for (auto& [k, carp_inst] : prepro.carpMap) {
 
 		auto solver = RouteSolver{};
-		auto routes = solver.solve_routes(inst, k, carp_inst, args.timelimit, args.iterlimit);
+		auto routes = solver.solve_routes(inst, k, carp_inst, args.timelimit/10, args.iterlimit);
 		all_routes.insert(all_routes.end(), routes.begin(), routes.end());
 		
 		for (auto const& route : routes) {
 			vidal_cost += route.cost;
 		}
 	}
-
 	print_routes(inst, "data/sol/"+inst.name+"_sol.txt", all_routes);
-	int nroutes = all_routes.size();
-
+	int nroutes = (int) all_routes.size();
 	timer.stop("vidal");
-
+	std::cout << "VIDAL END!" << std::endl;
 // -------------------------------------------------------- //
 	timer.start("post");
 
@@ -70,8 +68,8 @@ Result heur(Instance const& inst, Args const& args) {
 // -------------------------------------------------------- //
 	timer.start("local_search");
 
-	int timelimit_ls = static_cast<int>(timer.duration("vidal") * 7.0);
-	local_search(env, inst, args, best, rt_res, timelimit_ls, 500000);	
+	int timelimit_ls = args.timelimit - static_cast<int>(timer.duration("vidal")); // static_cast<int>(timer.duration("vidal") * 7.0);
+	local_search(env, inst, args, best, rt_res, timelimit_ls, 500000);
 
 	timer.stop("local_search");
 	timer.stop("total");

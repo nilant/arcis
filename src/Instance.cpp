@@ -15,7 +15,7 @@ Instance::Instance(int nvertices, int nreq_links, int nsubperiods, int horizon) 
                                                                      dist{nvertices, nvertices},
                                                                      prev{nvertices, nvertices},
                                                                      frequencies{nreq_links, nsubperiods}, 
-                                                                     sp_matrix{nsubperiods, horizon} {
+                                                                     sp_matrix{nsubperiods, horizon}{
 
     
 } 

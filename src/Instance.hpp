@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <vector>
+#include <random>
 
 #include "../libs/json.hpp"
 #include "mdarray.hpp"
