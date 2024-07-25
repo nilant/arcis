@@ -1,4 +1,5 @@
 .devcontainer
+.venv
 .vscode
 .cache
 .DS_Store

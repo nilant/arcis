@@ -100,7 +100,7 @@ int route_solver_test(const Instance &inst, int timelimit, int iterlimit) {
 
         auto solver = RouteSolver{};
 
-        int timelimit = static_cast<int>(std::ceil(pf.time / 2.0 / pf.all_pairs.size()));
+        int timelimit = static_cast<int>(std::ceil(pf.time / pf.all_pairs.size()));
 		auto routes = solver.solve_routes(inst, 0, carp, timelimit, iterlimit);
 
         for (auto const& route : routes) {
