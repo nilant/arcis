@@ -14,6 +14,7 @@ struct RTResult {
     double runtime{0};
 
     RTResult(Instance const& inst, mdarray<GRBVar, 2> const& y, mdarray<GRBVar, 2> const& x, std::vector<ArcRoute> const& routes, int obj, double time);
+	RTResult(Instance const& inst, mdarray<GRBVar, 2> const& y, mdarray<GRBVar, 2> const& x, std::vector<ArcRoute> const& routes, int obj, double time, bool uno);
 };
 
 struct RTModel {

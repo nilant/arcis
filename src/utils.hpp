@@ -41,7 +41,10 @@ void inline floyd_warshall(Matrix const& graph, Matrix& dist, Matrix& prev) {
                 if (areDistinct(i, j, k) && dist(i, j) > sat_sum(dist(i, k), dist(k, j))) {
                     dist(i, j) = sat_sum(dist(i, k), dist(k, j));
                     prev(i, j) = prev(k, j);
-                }
+                }/*else if(dist(i, j) < INF && areDistinct(i, j, k) && dist(i, j) == sat_sum(dist(i, k), dist(k, j))){
+	                dist(i, j) = sat_sum(dist(i, k), dist(k, j));
+	                prev(i, j) = prev(k, j);
+                }*/
             }
         }
     }

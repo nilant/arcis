@@ -12,7 +12,7 @@ RTResult::RTResult(Instance const& inst, mdarray<GRBVar, 2> const& y, mdarray<GR
     for (int r = 0; r < y_val.dimension(0); ++r) {
         int sp = routes[r].subperiod;
         for (int t = 0; t < y_val.dimension(1); ++t) {
-            if (/*routes[r].original ||*/ inst.sp_matrix(sp, t)) {
+            if (routes[r].original || inst.sp_matrix(sp, t)) {
                 y_val(r, t) = std::lrint(y(r, t).get(GRB_DoubleAttr_X));
             }
         }
@@ -28,6 +28,28 @@ RTResult::RTResult(Instance const& inst, mdarray<GRBVar, 2> const& y, mdarray<GR
     runtime = time;
 }
 
+RTResult::RTResult(Instance const& inst, mdarray<GRBVar, 2> const& y, mdarray<GRBVar, 2> const& x,
+                   std::vector<ArcRoute> const& routes, int obj, double time, bool uno) : y_val{y.dimension(0), y.dimension(1)}, x_val{x.dimension(0), x.dimension(1)} {
+
+	for (int r = 0; r < y_val.dimension(0); ++r) {
+		int sp = routes[r].subperiod;
+		for (int t = 0; t < y_val.dimension(1); ++t) {
+			if (routes[r].original || inst.sp_matrix(sp, t)) {
+				y_val(r, t) = std::lrint(y(r, t).get(GRB_DoubleAttr_Xn));
+			}
+		}
+	}
+
+	for (int l = 0; l < x_val.dimension(0); ++l) {
+		for (int t = 0; t < x_val.dimension(1); ++t) {
+			x_val(l, t) = std::lrint(x(l, t).get(GRB_DoubleAttr_Xn));
+		}
+	}
+
+	cost = obj;
+	runtime = time;
+}
+
 RTModel::RTModel(GRBEnv& env, Instance const& inst, Args const& args, std::vector<ArcRoute> const& routes) : model{env}, 
                                                                                            x{inst.nreq_links, inst.horizon},
                                                                                            y{routes.size(), inst.horizon} {
@@ -39,7 +61,7 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, Args const& args, std::vecto
             int sp = routes[r].subperiod;
 
             for (int t = 0; t < inst.horizon; ++t) {
-                if (/*routes[r].original ||*/ inst.sp_matrix(sp, t)) {
+                if (routes[r].original || inst.sp_matrix(sp, t)) {
                     y(r, t) = model.addVar(0, 1, 0, GRB_BINARY, fmt::format("y_{}_{}", r, t));
 					if(routes[r].mipStart.contains(t)){
 						y(r, t).set(GRB_DoubleAttr_Start, 1.0);
@@ -61,7 +83,7 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, Args const& args, std::vecto
         for (int t = 0; t < inst.horizon; ++t) {
             for (int r = 0; r < routes.size(); ++r) {
                 int sp = routes[r].subperiod;
-                if (/*routes[r].original ||*/ inst.sp_matrix(sp, t)) {
+                if (routes[r].original || inst.sp_matrix(sp, t)) {
                     expr += routes[r].cost * y(r, t);
                 }
             }
@@ -92,7 +114,7 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, Args const& args, std::vecto
             for (int t = 0; t < inst.horizon; ++t) {
                 for (int r = 0; r < routes.size(); ++r) {
                     int sp = routes[r].subperiod;
-                    if (/*routes[r].original ||*/ inst.sp_matrix(sp, t)) {
+                    if (routes[r].original || inst.sp_matrix(sp, t)) {
                         if (routes[r].contains(l)) {
                             expr += y(r, t);
                         }
@@ -159,6 +181,16 @@ RTResult RTModel::optimize(Instance const& inst, std::vector<ArcRoute> const& ro
         fmt::print("Error message={}\n", e.getMessage());
         std::exit(1);
     }
+
+	int nSol = model.get(GRB_IntAttr_SolCount);
+	if(nSol > 1){
+		double obj = model.get(GRB_DoubleAttr_ObjVal);
+		model.set(GRB_IntParam_SolutionNumber,1);
+		if(model.get(GRB_DoubleAttr_PoolObjVal) > obj + 0.5)
+			model.set(GRB_IntParam_SolutionNumber,0);
+		else
+			return RTResult(inst, y, x, routes, cost, this->runtime(), true);
+	}
     
     return RTResult(inst, y, x, routes, cost, this->runtime());
 }

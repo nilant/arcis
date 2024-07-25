@@ -97,7 +97,7 @@ void Preprocessing::run(const Instance& inst){
 		}
 	}
 
-	// std::random_device rd;
+	std::random_device rd;
 	std::mt19937 gen(0);
 	std::uniform_real_distribution<> dis(0, 1);	//uniform distribution between 0 and 1
 
@@ -108,11 +108,10 @@ void Preprocessing::run(const Instance& inst){
 				std::vector<std::pair<double, int>> nearestSp;
 				for(const auto& carp : carpMap){
 					if(contains[sp].count(carp.first)){
-						int minDist = 100000.0;
+						double minDist = 100000.0;
 						for(auto ll: carp.second.link_to_visit)
-							minDist = (int) fmin(minDist, dist_req_matrix(l,ll));
-						double rand_perc = dis(gen);
-						nearestSp.emplace_back(minDist+rand_perc, carp.first);
+							minDist = fmin(minDist, dist_req_matrix(l, ll));
+						nearestSp.emplace_back(minDist + dis(gen), carp.first);
 					}
 				}
 				std::sort(nearestSp.begin(), nearestSp.end());
@@ -121,5 +120,6 @@ void Preprocessing::run(const Instance& inst){
 			}
 		}
 	}
+
 
 }

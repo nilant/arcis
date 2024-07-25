@@ -8,7 +8,7 @@ Args::Args(int argc, char* argv[]) {
 
     input_file = fs::path(cmdl[1]);
     cmdl("--timelimit", 3600) >> timelimit;
-    cmdl("--iterlimit", 1000) >> iterlimit;
+    cmdl("--iterlimit", 500) >> iterlimit;
     cmdl("--memlimit", 0) >> memlimit;
     cmdl("--threads", 1) >> threads;
     cmdl("--seed", 42) >> seed;

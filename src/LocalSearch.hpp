@@ -4,12 +4,12 @@
 #include "best.hpp"
 
 struct RandomGenerator {
-	std::random_device rd;
+	// std::random_device rd;
 	std::mt19937 gen; // Generatore di numeri casuali
 	std::uniform_int_distribution<> distrib; // Distribuzione uniforme in 0 1
 
 	// Costruttore
-	RandomGenerator() : gen(rd()), distrib(0.0, 1.0) {}
+	RandomGenerator() : gen(0), distrib(0.0, 1.0) {}
 
 	// Metodo per generare un numero casuale
 	int coin() {

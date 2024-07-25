@@ -116,7 +116,8 @@ Instance read_json(fs::path input_path) {
         i++;
     }
 
-    floyd_warshall(inst.trav_cost, inst.dist, inst.prev);
-
+    // floyd_warshall(inst.trav_cost, inst.dist, inst.prev);
+	RandomGenerator rand_gen;
+	rand_floyd_warshall(inst.trav_cost, inst.dist, inst.prev, rand_gen);
     return inst;
 }

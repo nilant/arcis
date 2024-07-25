@@ -27,28 +27,27 @@ Result heur(Instance& inst, Args const& args) {
 		env.set(GRB_IntParam_OutputFlag, 1);
 	#endif
 
-	Preprocessing prepro{};
-	prepro.run(inst);
-
 	timer.stop("preprocessing");
-
 // -------------------------------------------------------- //
 	timer.start("vidal");
-
 	std::vector<ArcRoute> all_routes;
-	all_routes.reserve(inst.horizon * inst.nvehicles);
-
 	double vidal_cost{0.0};
-	for (auto& [k, carp_inst] : prepro.carpMap) {
+	Preprocessing prepro{};
+	prepro.run(inst);
+	// std::vector<ArcRoute> all_routes;
+	// all_routes.reserve(inst.horizon * inst.nvehicles);
+
+	for(auto& [k, carp_inst]: prepro.carpMap){
 
 		auto solver = RouteSolver{};
 		auto routes = solver.solve_routes(inst, k, carp_inst, args.timelimit/10, args.iterlimit);
 		all_routes.insert(all_routes.end(), routes.begin(), routes.end());
-		
-		for (auto const& route : routes) {
+
+		for(auto const& route: routes){
 			vidal_cost += route.cost;
 		}
 	}
+
 	print_routes(inst, "data/sol/"+inst.name+"_sol.txt", all_routes);
 	int nroutes = (int) all_routes.size();
 	timer.stop("vidal");
