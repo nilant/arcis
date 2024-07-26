@@ -1,10 +1,13 @@
 #pragma once
 #include <gurobi_c++.h>
 #include "Instance.hpp"
+#include "LocalSearch.hpp"
+#include <set>
+#include <random>
 
 struct CarpInstance{
 	CarpInstance();
-	std::vector<int> link_to_visit;
+	std::set<int> link_to_visit;
 	int nVehicle;
 
 	explicit CarpInstance(int v_nVehicle);
@@ -12,7 +15,9 @@ struct CarpInstance{
 
 struct Preprocessing {
 
-	Preprocessing();
+	Preprocessing(Instance const& inst);
 	std::map<int, CarpInstance> carpMap;
-	void run(Instance const& inst);
+	std::vector<std::set<int>> contains;
+	std::set<int> elementarySP;
+	void run(Instance const& inst, RandomGenerator& rand_gen);
 };

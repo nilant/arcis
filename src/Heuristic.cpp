@@ -27,8 +27,9 @@ Result heur(Instance& inst, Args const& args) {
 		env.set(GRB_IntParam_OutputFlag, 1);
 	#endif
 
-	Preprocessing prepro{};
-	prepro.run(inst);
+	RandomGenerator rand_gen{};
+	Preprocessing prepro(inst);
+	prepro.run(inst,rand_gen);
 
 	timer.stop("preprocessing");
 
@@ -40,19 +41,21 @@ Result heur(Instance& inst, Args const& args) {
 
 	double vidal_cost{0.0};
 	for (auto& [k, carp_inst] : prepro.carpMap) {
+		if(!carp_inst.link_to_visit.empty()){
 
-		auto solver = RouteSolver{};
-		auto routes = solver.solve_routes(inst, k, carp_inst, args.timelimit/10, args.iterlimit);
-		all_routes.insert(all_routes.end(), routes.begin(), routes.end());
+			auto solver = RouteSolver{};
+			auto routes = solver.solve_routes(inst, k, carp_inst, args.timelimit/10, args.iterlimit);
+			all_routes.insert(all_routes.end(), routes.begin(), routes.end());
 
-		for (auto const& route : routes) {
-			vidal_cost += route.cost;
+			for(auto const& route: routes){
+				vidal_cost += route.cost;
+			}
 		}
 	}
 	print_routes(inst, "data/sol/"+inst.name+"_sol.txt", all_routes);
 	int nroutes = (int) all_routes.size();
 	timer.stop("vidal");
-	std::cout << "VIDAL END!" << std::endl;
+	std::cout << "VIDAL END: " << vidal_cost << std::endl;
 // -------------------------------------------------------- //
 	timer.start("post");
 

@@ -10,13 +10,13 @@ struct ArcRoute {
     int cost{0};
     int vehicle{-1};
     int period{-1};
-	std::unordered_set<int> mipStart;
+	bool mipStart{false};
 
     std::vector<std::pair<int, int>> full_path;
     mdarray<int, 1> _links;
 
     explicit ArcRoute(Instance const& inst, ArcRoute const& other, int start, int end);
-    explicit ArcRoute(Instance const& inst, std::vector<std::pair<int,int>> const& vidal_route, int veh, int t, bool original);
+    explicit ArcRoute(Instance const& inst, std::vector<std::pair<int,int>> const& vidal_route, int veh, int t);
 
 	void insert_links(Instance const& inst, std::vector<std::pair<int, int>> vecLinks, int bestNode, int pos);
 	void remove_links(Instance const& inst, int fromLink, int toLink);

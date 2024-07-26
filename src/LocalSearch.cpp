@@ -32,12 +32,14 @@ ArcRoute inserts(Instance const& inst, std::vector<std::pair<int, int>> vecLinks
 	}
 
 	ArcRoute new_route{route};
+	new_route.mipStart = false;
 	new_route.insert_links(inst, vecLinks, bestNode, best_insert_point);
 	return new_route;
 }
 
 ArcRoute removes(Instance const& inst, int fromLink, int toLink, ArcRoute const& route){
 	ArcRoute new_route{route};
+	new_route.mipStart = false;
 	new_route.remove_links(inst, fromLink, toLink);
 	return new_route;
 }
@@ -50,8 +52,8 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 	for(int t = 0; t < inst.horizon; ++t){
 		for(auto& route: best_sol.best_routes[t]){
 			new_routes.push_back(route);
-			new_routes.back().mipStart.clear();
-			new_routes.back().mipStart.insert(t);
+			new_routes.back().mipStart = true;
+			new_routes.back().period = t;
 			for(int fromIndex = 0; fromIndex < route.full_path.size(); fromIndex++){
 
 				std::vector<int> randToIndex;
@@ -103,7 +105,7 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 
 				if(!randToIndex.empty()){
 					int maxRand = randToIndex.size() - 1;
-					std::vector<int>::size_type random_index = rand_gen.getRandom(maxRand);
+					std::vector<int>::size_type random_index = rand_gen.getRandomInt(maxRand);
 					int toIndex = randToIndex[random_index];
 					auto end_it = route.full_path.begin() + toIndex + 1; // +1 per includere to_index
 					std::vector<std::pair<int, int>> vecLinks;
@@ -145,9 +147,7 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 								new_routes.insert(new_routes.end(), r2.begin(), r2.end());
 							}
 						}
-
 					}
-
 				}
 			}
 		}

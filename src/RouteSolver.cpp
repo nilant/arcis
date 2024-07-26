@@ -44,7 +44,7 @@ std::vector<ArcRoute> RouteSolver::solve_routes(Instance const& inst, int t, Car
 	auto sol = population->BestSolution();
 
 	for (int veh = 0; veh < sol.second.size(); ++veh) {
-		ArcRoute route{inst, sol.second[veh], veh, t, true};
+		ArcRoute route{inst, sol.second[veh], veh, t};
 		auto splitted_routes = split_route_at_depot(inst, route);
 		int cost_splitted = 0;
 		int nserv = 0;

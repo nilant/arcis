@@ -37,6 +37,7 @@ std::vector<ArcRoute> split_route_at_depot(Instance const& inst, ArcRoute const&
 ArcRoute::ArcRoute(Instance const& inst, ArcRoute const& other, int start, int end) : _links{inst.nlinks}{
 	cost = 0;
 	vehicle = other.vehicle;
+	period = other.period;
 
 	std::copy(other.full_path.begin() + start, other.full_path.begin() + (end + 1), std::back_inserter(full_path));
 	for(auto const [i, j]: full_path){
@@ -45,7 +46,7 @@ ArcRoute::ArcRoute(Instance const& inst, ArcRoute const& other, int start, int e
 	}
 }
 
-ArcRoute::ArcRoute(Instance const& inst, std::vector<std::pair<int, int>> const& route, int veh, int t, bool ori)
+ArcRoute::ArcRoute(Instance const& inst, std::vector<std::pair<int, int>> const& route, int veh, int t)
 		: _links{inst.nlinks}{
 
 	period = t;
