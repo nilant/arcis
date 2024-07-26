@@ -36,22 +36,22 @@ std::vector<ArcRoute> split_route_at_depot(Instance const& inst, ArcRoute const&
 
 ArcRoute::ArcRoute(Instance const& inst, ArcRoute const& other, int start, int end) : _links{inst.nlinks}{
 	cost = 0;
-	original = other.original;
-	subperiod = other.subperiod;
 	vehicle = other.vehicle;
+	period = other.period;
 
 	std::copy(other.full_path.begin() + start, other.full_path.begin() + (end + 1), std::back_inserter(full_path));
 	for(auto const [i, j]: full_path){
+		if(inst.required(i,j)){
+			links(inst.id(i, j)) = true;
+		}
 		cost += inst.trav_cost(i, j);
-		links(inst.id(i, j)) = true;
 	}
 }
 
-ArcRoute::ArcRoute(Instance const& inst, std::vector<std::pair<int, int>> const& route, int veh, int sp, bool ori)
+ArcRoute::ArcRoute(Instance const& inst, std::vector<std::pair<int, int>> const& route, int veh, int t)
 		: _links{inst.nlinks}{
 
-	original = ori;
-	subperiod = sp;
+	period = t;
 
 	for(int l = 0; l < _links.dimension(0); ++l){
 		links(l) = false;
@@ -62,9 +62,9 @@ ArcRoute::ArcRoute(Instance const& inst, std::vector<std::pair<int, int>> const&
 	int prev_v = 0;
 	full_path.reserve(inst.nlinks);
 
-	for(int i = 0; i < route.size(); ++i){
-		int u = route[i].first - 1;       // -1 because vidal nodes starts from 1
-		int v = route[i].second - 1;
+	for(const auto & link : route){
+		int u = link.first - 1;       // -1 because vidal nodes starts from 1
+		int v = link.second - 1;
 
 		auto path = build_path(inst.prev, prev_v, u);
 		for(auto const& [i, j]: path){
@@ -74,7 +74,7 @@ ArcRoute::ArcRoute(Instance const& inst, std::vector<std::pair<int, int>> const&
 		}
 		if(u != 0 || v != 0){
 			full_path.push_back({u, v});
-			cost += inst.serv_cost(u, v);
+			cost += inst.trav_cost(u, v);
 			links(inst.id(u, v)) = true;
 		}
 
@@ -101,21 +101,22 @@ void ArcRoute::insert_links(Instance const& inst, std::vector<std::pair<int, int
 	auto postPath = build_path(inst.prev, lastV, bestNode);
 	full_path.insert(full_path.begin() + pos, postPath.begin(), postPath.end());
 	for(auto const [i, j]: postPath){
-		cost += inst.trav_cost(i, j);
 		links(inst.id(i, j)) = true;
+		cost += inst.trav_cost(i, j);
 	}
 
 	full_path.insert(full_path.begin() + pos, vecLinks.begin(), vecLinks.end());
 	for(auto const [i, j]: vecLinks){
-		cost += inst.trav_cost(i, j);
-		links(inst.id(i, j)) = true;
+			links(inst.id(i, j)) = true;
+			cost += inst.trav_cost(i, j);
 	}
 
 	auto prevPath = build_path(inst.prev, bestNode, firstU);
 	full_path.insert(full_path.begin() + pos, prevPath.begin(), prevPath.end());
 	for(auto const [i, j]: prevPath){
-		cost += inst.trav_cost(i, j);
-		links(inst.id(i, j)) = true;
+
+			links(inst.id(i, j)) = true;
+			cost += inst.trav_cost(i, j);
 	}
 
 	check_cost(inst);
@@ -130,16 +131,18 @@ void ArcRoute::remove_links(Instance const& inst, int fromLink, int toLink){
 	for(int linkIndex = fromLink; linkIndex <= toLink; linkIndex++){
 		int u = full_path[linkIndex].first;
 		int v = full_path[linkIndex].second;
-		cost -= inst.serv_cost(u, v);
-		links(inst.id(u, v)) = false;
+
+			links(inst.id(u, v)) = false;
+			cost -= inst.trav_cost(u, v);
 	}
 	full_path.erase(full_path.begin() + fromLink, full_path.begin() + toLink + 1);
 
 	auto path = build_path(inst.prev, prev, post);
 	full_path.insert(full_path.begin() + fromLink, path.begin(), path.end());
 	for(auto const [i, j]: path){
-		cost += inst.trav_cost(i, j);
-		links(inst.id(i, j)) = true;
+
+			links(inst.id(i, j)) = true;
+			cost += inst.trav_cost(i, j);
 	}
 	check_cost(inst);
 }
@@ -186,7 +189,7 @@ void check_routes(std::vector<int> const& link_to_visit, std::vector<ArcRoute> c
 void print_routes(Instance const& inst, const std::string& file_name, std::vector<ArcRoute>& routes){
 	std::string print = "";
 	for(auto const& route: routes){
-		std::string list_of_links = fmt::format("{} [", route.subperiod);
+		std::string list_of_links = fmt::format("{} [", route.period);
 		for(auto const& link: route.full_path){
 			int u = link.first;
 			int v = link.second;

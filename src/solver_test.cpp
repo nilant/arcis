@@ -84,7 +84,7 @@ CarpInstance create_carp_instance(Instance const& inst, std::vector<std::pair<in
         int u = link.first;
         int v = link.second;
 
-        carp.link_to_visit.push_back(inst.id(u, v));
+        carp.link_to_visit.insert(inst.id(u, v));
     }
     return carp;
 }

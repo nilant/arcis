@@ -6,20 +6,21 @@
 struct RandomGenerator {
 	// std::random_device rd;
 	std::mt19937 gen; // Generatore di numeri casuali
-	std::uniform_int_distribution<> distrib; // Distribuzione uniforme in 0 1
+	std::uniform_int_distribution<> distribCoin; // Distribuzione uniforme in 0 1
+	std::uniform_int_distribution<> distribInt;
 
 	// Costruttore
-	RandomGenerator() : gen(0), distrib(0.0, 1.0) {}
+	RandomGenerator() : gen(0), distribCoin(0.0, 1.0), distribInt(0.0, std::numeric_limits<int>::max()) {}
 
 	// Metodo per generare un numero casuale
 	int coin() {
-		return distrib(gen);
+		return distribCoin(gen);
 	}
 
 	// Metodo per generare un numero casuale tra 0 e max
-	int getRandom(int max) {
-		std::uniform_int_distribution<> distrib_int(0, max);
-		return distrib_int(gen);
+	int getRandomInt(int max) {
+		int output = distribInt(gen) % (max+1);
+		return output;
 	}
 };
 
