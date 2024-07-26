@@ -10,12 +10,8 @@ RTResult::RTResult(Instance const& inst, mdarray<GRBVar, 2> const& y, mdarray<GR
                    std::vector<ArcRoute> const& routes, int obj, double time) : y_val{y.dimension(0), y.dimension(1)}, x_val{x.dimension(0), x.dimension(1)} {
 
     for (int r = 0; r < y_val.dimension(0); ++r) {
-        int sp = routes[r].subperiod;
-        for (int t = 0; t < y_val.dimension(1); ++t) {
-            if (routes[r].original || inst.sp_matrix(sp, t)) {
-                y_val(r, t) = std::lrint(y(r, t).get(GRB_DoubleAttr_X));
-            }
-        }
+        int t = routes[r].period;
+		y_val(r, t) = std::lrint(y(r, t).get(GRB_DoubleAttr_X));
     }
 
     for (int l = 0; l < x_val.dimension(0); ++l) {
@@ -32,12 +28,8 @@ RTResult::RTResult(Instance const& inst, mdarray<GRBVar, 2> const& y, mdarray<GR
                    std::vector<ArcRoute> const& routes, int obj, double time, bool uno) : y_val{y.dimension(0), y.dimension(1)}, x_val{x.dimension(0), x.dimension(1)} {
 
 	for (int r = 0; r < y_val.dimension(0); ++r) {
-		int sp = routes[r].subperiod;
-		for (int t = 0; t < y_val.dimension(1); ++t) {
-			if (routes[r].original || inst.sp_matrix(sp, t)) {
-				y_val(r, t) = std::lrint(y(r, t).get(GRB_DoubleAttr_Xn));
-			}
-		}
+		int t = routes[r].period;
+		y_val(r, t) = std::lrint(y(r, t).get(GRB_DoubleAttr_Xn));
 	}
 
 	for (int l = 0; l < x_val.dimension(0); ++l) {
@@ -58,17 +50,11 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, Args const& args, std::vecto
 
         // y's variables
         for (int r = 0; r < routes.size(); ++r) {
-            int sp = routes[r].subperiod;
-
-            for (int t = 0; t < inst.horizon; ++t) {
-                if (routes[r].original || inst.sp_matrix(sp, t)) {
+            int t = routes[r].period;
                     y(r, t) = model.addVar(0, 1, 0, GRB_BINARY, fmt::format("y_{}_{}", r, t));
-					if(routes[r].mipStart.contains(t)){
+					if(routes[r].mipStart.contains(t))
 						y(r, t).set(GRB_DoubleAttr_Start, 1.0);
-						// y(r, t).set(GRB_DoubleAttr_VarHintVal, 0.0);
-					}
-                }
-            }
+
         }
 
         // x's variables
@@ -81,12 +67,8 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, Args const& args, std::vecto
         //(5)
         GRBLinExpr expr{0};
         for (int t = 0; t < inst.horizon; ++t) {
-            for (int r = 0; r < routes.size(); ++r) {
-                int sp = routes[r].subperiod;
-                if (routes[r].original || inst.sp_matrix(sp, t)) {
-                    expr += routes[r].cost * y(r, t);
-                }
-            }
+            for (int r = 0; r < routes.size(); ++r)
+				expr += routes[r].cost * y(r, t);
             for (int l = 0; l < inst.nreq_links; ++l) {
                 int u = inst.links[l].first;
                 int v = inst.links[l].second;
@@ -113,12 +95,9 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, Args const& args, std::vecto
         for (int l = 0; l < inst.nreq_links; ++l) {
             for (int t = 0; t < inst.horizon; ++t) {
                 for (int r = 0; r < routes.size(); ++r) {
-                    int sp = routes[r].subperiod;
-                    if (routes[r].original || inst.sp_matrix(sp, t)) {
                         if (routes[r].contains(l)) {
                             expr += y(r, t);
                         }
-                    }
                 }
                 model.addConstr(x(l, t) <= expr, fmt::format("7_{}_{}", l, t));
 	            expr.clear();

@@ -4,7 +4,7 @@
 #include "Preprocessing.hpp"
 
 
-std::vector<ArcRoute> RouteSolver::solve_routes(Instance const& inst, int sp, CarpInstance const& carp_inst, int timelimit, int iterlimit) {
+std::vector<ArcRoute> RouteSolver::solve_routes(Instance const& inst, int t, CarpInstance const& carp_inst, int timelimit, int iterlimit) {
 
 	auto t0 = std::chrono::high_resolution_clock::now();
 
@@ -44,7 +44,7 @@ std::vector<ArcRoute> RouteSolver::solve_routes(Instance const& inst, int sp, Ca
 	auto sol = population->BestSolution();
 
 	for (int veh = 0; veh < sol.second.size(); ++veh) {
-		ArcRoute route{inst, sol.second[veh], veh, sp, true};
+		ArcRoute route{inst, sol.second[veh], veh, t, true};
 		auto splitted_routes = split_route_at_depot(inst, route);
 		int cost_splitted = 0;
 		int nserv = 0;

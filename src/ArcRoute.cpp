@@ -36,8 +36,6 @@ std::vector<ArcRoute> split_route_at_depot(Instance const& inst, ArcRoute const&
 
 ArcRoute::ArcRoute(Instance const& inst, ArcRoute const& other, int start, int end) : _links{inst.nlinks}{
 	cost = 0;
-	original = other.original;
-	subperiod = other.subperiod;
 	vehicle = other.vehicle;
 
 	std::copy(other.full_path.begin() + start, other.full_path.begin() + (end + 1), std::back_inserter(full_path));
@@ -47,11 +45,10 @@ ArcRoute::ArcRoute(Instance const& inst, ArcRoute const& other, int start, int e
 	}
 }
 
-ArcRoute::ArcRoute(Instance const& inst, std::vector<std::pair<int, int>> const& route, int veh, int sp, bool ori)
+ArcRoute::ArcRoute(Instance const& inst, std::vector<std::pair<int, int>> const& route, int veh, int t, bool ori)
 		: _links{inst.nlinks}{
 
-	original = ori;
-	subperiod = sp;
+	period = t;
 
 	for(int l = 0; l < _links.dimension(0); ++l){
 		links(l) = false;
@@ -186,7 +183,7 @@ void check_routes(std::vector<int> const& link_to_visit, std::vector<ArcRoute> c
 void print_routes(Instance const& inst, const std::string& file_name, std::vector<ArcRoute>& routes){
 	std::string print = "";
 	for(auto const& route: routes){
-		std::string list_of_links = fmt::format("{} [", route.subperiod);
+		std::string list_of_links = fmt::format("{} [", route.period);
 		for(auto const& link: route.full_path){
 			int u = link.first;
 			int v = link.second;

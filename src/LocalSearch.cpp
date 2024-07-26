@@ -32,14 +32,12 @@ ArcRoute inserts(Instance const& inst, std::vector<std::pair<int, int>> vecLinks
 	}
 
 	ArcRoute new_route{route};
-	new_route.original = false;
 	new_route.insert_links(inst, vecLinks, bestNode, best_insert_point);
 	return new_route;
 }
 
 ArcRoute removes(Instance const& inst, int fromLink, int toLink, ArcRoute const& route){
 	ArcRoute new_route{route};
-	new_route.original = false;
 	new_route.remove_links(inst, fromLink, toLink);
 	return new_route;
 }
