@@ -12,29 +12,16 @@
 #include "timer.hpp"
 
 
-Result heur(Instance& inst, Args const& args) {
 
-// -------------------------------------------------------- //
+Result run(Instance& inst, Args const& args, GRBEnv& env, int timelimit) {
+
 	Timer timer{};
 	timer.start("total");
-	timer.start("preprocessing");
 
-	GRBEnv env{};
-
-	#ifdef NDEBUG
-		env.set(GRB_IntParam_OutputFlag, 0);
-	#else
-		env.set(GRB_IntParam_OutputFlag, 1);
-	#endif
-
-	RandomGenerator rand_gen{};
-	Preprocessing prepro(inst);
-	prepro.run(inst,rand_gen);
-
-	timer.stop("preprocessing");
+	Preprocessing prepro{};
+	prepro.run(inst);
 
 // -------------------------------------------------------- //
-	timer.start("vidal");
 
 	std::vector<ArcRoute> all_routes;
 	all_routes.reserve(inst.horizon * inst.nvehicles);
@@ -43,9 +30,9 @@ Result heur(Instance& inst, Args const& args) {
 	for (auto& [k, carp_inst] : prepro.carpMap) {
 		if(!carp_inst.link_to_visit.empty()){
 
-			auto solver = RouteSolver{};
-			auto routes = solver.solve_routes(inst, k, carp_inst, args.timelimit/10, args.iterlimit);
-			all_routes.insert(all_routes.end(), routes.begin(), routes.end());
+		auto solver = RouteSolver{};
+		auto routes = solver.solve_routes(inst, k, carp_inst, static_cast<int>(timelimit * 0.1), args.iterlimit);
+		all_routes.insert(all_routes.end(), routes.begin(), routes.end());
 
 			for(auto const& route: routes){
 				vidal_cost += route.cost;
@@ -54,30 +41,24 @@ Result heur(Instance& inst, Args const& args) {
 	}
 	// print_routes(inst, "data/sol/"+inst.name+"_sol.txt", all_routes);
 	int nroutes = (int) all_routes.size();
-	timer.stop("vidal");
-	std::cout << "VIDAL END: " << vidal_cost << std::endl;
+
+	fmt::print("VIDAL END!\n");
+
 // -------------------------------------------------------- //
-	timer.start("post");
 
 	RTModel rt_model{env, inst, args, all_routes};	
 	RTResult rt_res = rt_model.optimize(inst, all_routes);
-	double rt_time = rt_model.time();
 
 	BestSolution best(inst, all_routes, rt_res);
 	int rt_cost = best.cost;
 
-	timer.stop("post");
 
 // -------------------------------------------------------- //
-	timer.start("local_search");
 
-	int timelimit_ls = args.timelimit - static_cast<int>(timer.duration("vidal")); // static_cast<int>(timer.duration("vidal") * 7.0);
-	local_search(env, inst, args, best, rt_res, timelimit_ls, 500000);
+	int timelimit_ls = args.timelimit - static_cast<int>(timelimit * 0.9);
+	local_search(env, inst, args, best, rt_res, timelimit_ls, 20);
 
-	timer.stop("local_search");
 	timer.stop("total");
-
-// -------------------------------------------------------- //
 
 	Result res{};
 	res.name = "arcis";
@@ -101,6 +82,36 @@ Result heur(Instance& inst, Args const& args) {
 
 	res.nroutes = nroutes;
 	res.lb = lower_bound(inst);
+
+	return res;
+}
+
+
+Result heur(Instance& inst, Args const& args) {
+
+// -------------------------------------------------------- //
+	Timer timer{};
+	timer.start("total");
+
+	GRBEnv env{};
+
+	#ifdef NDEBUG
+		env.set(GRB_IntParam_OutputFlag, 0);
+	#else
+		env.set(GRB_IntParam_OutputFlag, 1);
+	#endif
+
+	double timelimit = args.timelimit;
+	auto res = run(inst, args, env, timelimit);
+	if (std::abs(res.total_time - timelimit) > 10) {
+		timelimit -= res.total_time;
+		fmt::print("restart with residual timelimit {}\n", timelimit);
+		res = run(inst, args, env, timelimit);
+	}
+
+	timer.stop("total");
+
+// -------------------------------------------------------- //
 
 	return res;
 }

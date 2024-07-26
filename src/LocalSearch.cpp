@@ -156,7 +156,7 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 	return new_routes;
 }
 
-void local_search(GRBEnv& env, Instance& inst, Args const& args, BestSolution& curr_best, RTResult& curr_rt_res,
+double local_search(GRBEnv& env, Instance& inst, Args const& args, BestSolution& curr_best, RTResult& curr_rt_res,
                   int timelimit, int iterlimit){
 
 	Timer timer{};
@@ -174,10 +174,10 @@ void local_search(GRBEnv& env, Instance& inst, Args const& args, BestSolution& c
 	int iter = 0;
 	int best_iter = 0;
 	double best_time = 0;
-	for(; iter <= iterlimit && runtime <= timelimit; ++iter){
+	for(; runtime <= timelimit; ++iter) {
 
 		auto new_routes = generate_new_routes(inst, curr_best, rand_gen);
-		std::cout << "New route generated" << std::endl;
+		fmt::print("New route generated\n");
 		RTModel rt_model{env, inst, args, new_routes};
 
 		curr_rt_res = rt_model.optimize(inst, new_routes);
@@ -195,6 +195,12 @@ void local_search(GRBEnv& env, Instance& inst, Args const& args, BestSolution& c
 			best_time = runtime;
 		}
 		prev_cost = best_cost;
+		if (iter - best_iter > iterlimit) {
+			timer.stop("local");
+			local_search_time += timer.duration("local");
+
+			return timer.duration("local");
+		}
 	}
 
 	curr_best.iter = iter;
@@ -209,4 +215,5 @@ void local_search(GRBEnv& env, Instance& inst, Args const& args, BestSolution& c
 	timer.stop("local");
 
 	local_search_time += timer.duration("local");
+	return timer.duration("local");
 }
