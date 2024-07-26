@@ -161,6 +161,9 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 void local_search(GRBEnv& env, Instance& inst, Args const& args, BestSolution& curr_best, RTResult& curr_rt_res,
                   int timelimit, int iterlimit){
 
+	Timer timer{};
+	timer.start("local");
+
 	fmt::print("iterlimit={}, timelimit={}\n", iterlimit, timelimit);
 	auto t0 = std::chrono::high_resolution_clock::now();
 
@@ -205,4 +208,7 @@ void local_search(GRBEnv& env, Instance& inst, Args const& args, BestSolution& c
 	curr_best.gurobi_time = gurobi_time;
 
 	fmt::print("best_iter={}, best_cost={}\n", best_iter, best_cost);
+	timer.stop("local");
+
+	local_search_time += timer.duration("local");
 }

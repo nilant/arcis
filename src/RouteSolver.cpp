@@ -4,6 +4,8 @@
 #include "Preprocessing.hpp"
 
 
+double RouteSolver::call_time = 0;
+
 std::vector<ArcRoute> RouteSolver::solve_routes(Instance const& inst, int sp, CarpInstance const& carp_inst, int timelimit, int iterlimit) {
 
 	auto t0 = std::chrono::high_resolution_clock::now();
@@ -61,6 +63,8 @@ std::vector<ArcRoute> RouteSolver::solve_routes(Instance const& inst, int sp, Ca
 
 	auto t1 = std::chrono::high_resolution_clock::now();
 	_runtime = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count(); 
+
+	RouteSolver::call_time += _runtime;
 
     return routes;
 }

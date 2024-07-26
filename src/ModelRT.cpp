@@ -6,6 +6,9 @@
 
 #include <fmt/core.h>
 
+double RTModel::call_time = 0;
+double RTModel::grb_time = 0;
+
 RTResult::RTResult(Instance const& inst, mdarray<GRBVar, 2> const& y, mdarray<GRBVar, 2> const& x, 
                    std::vector<ArcRoute> const& routes, int obj, double time) : y_val{y.dimension(0), y.dimension(1)}, x_val{x.dimension(0), x.dimension(1)} {
 
@@ -53,6 +56,9 @@ RTResult::RTResult(Instance const& inst, mdarray<GRBVar, 2> const& y, mdarray<GR
 RTModel::RTModel(GRBEnv& env, Instance const& inst, Args const& args, std::vector<ArcRoute> const& routes) : model{env}, 
                                                                                            x{inst.nreq_links, inst.horizon},
                                                                                            y{routes.size(), inst.horizon} {
+    
+    timer.start("time");
+
     try {
         model.set(GRB_StringAttr_ModelName, "RTModel");                                                                                 
 
@@ -191,10 +197,19 @@ RTResult RTModel::optimize(Instance const& inst, std::vector<ArcRoute> const& ro
 		else
 			return RTResult(inst, y, x, routes, cost, this->runtime(), true);
 	}
-    
+
+    timer.stop("time");
+
+    RTModel::call_time += time();
+    RTModel::grb_time  += runtime();
+
     return RTResult(inst, y, x, routes, cost, this->runtime());
 }
 
 double RTModel::runtime() {
     return model.get(GRB_DoubleAttr_Runtime);
+}
+
+double RTModel::time() {
+    return timer.duration("time");
 }

@@ -2,6 +2,7 @@
 
 #include "Instance.hpp"
 #include "ArcRoute.hpp"
+#include "timer.hpp"
 #include "cli.hpp"
 #include <gurobi_c++.h>
 #include <limits>
@@ -19,13 +20,18 @@ struct RTResult {
 
 struct RTModel {
 	GRBModel model;
-    
     // indices are l, t (l = link, t = period). 1 iff link l is served in period t 
     mdarray<GRBVar, 2> x;
     // indices are r, t (r = route, t = period). 1 iff route r is used in period t 
     mdarray<GRBVar, 2> y;
 
+    Timer timer{};
+
+    static double call_time;
+    static double grb_time;
+
     RTModel(GRBEnv& env, Instance const& inst, Args const& args, std::vector<ArcRoute> const& routes);
     RTResult optimize(Instance const& inst, std::vector<ArcRoute> const& routes);
     double runtime();
+    double time();
 };

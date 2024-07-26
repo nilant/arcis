@@ -49,7 +49,7 @@ Result heur(Instance& inst, Args const& args) {
 			vidal_cost += route.cost;
 		}
 	}
-	print_routes(inst, "data/sol/"+inst.name+"_sol.txt", all_routes);
+	// print_routes(inst, "data/sol/"+inst.name+"_sol.txt", all_routes);
 	int nroutes = (int) all_routes.size();
 	timer.stop("vidal");
 	std::cout << "VIDAL END!" << std::endl;
@@ -58,7 +58,7 @@ Result heur(Instance& inst, Args const& args) {
 
 	RTModel rt_model{env, inst, args, all_routes};	
 	RTResult rt_res = rt_model.optimize(inst, all_routes);
-	double rt_time = rt_model.runtime();
+	double rt_time = rt_model.time();
 
 	BestSolution best(inst, all_routes, rt_res);
 	int rt_cost = best.cost;
@@ -83,11 +83,11 @@ Result heur(Instance& inst, Args const& args) {
 	res.rt_obj = rt_cost;
 	res.ls_obj = best.cost;
 
-	res.vidal_time = timer.duration("vidal");
-	res.rt_time = rt_time;
-	res.ls_time = timer.duration("local_search");
+	res.vidal_time = RouteSolver::call_time;
+	res.rt_time = RTModel::call_time;
+	res.ls_time = local_search_time;
 
-	res.gurobi_time = best.gurobi_time;
+	res.gurobi_time = RTModel::grb_time;
 	res.total_time = timer.duration("total");
 
 	res.time_ls = best.time;
