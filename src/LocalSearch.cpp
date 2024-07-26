@@ -13,7 +13,7 @@ ArcRoute inserts(Instance const& inst, std::vector<std::pair<int, int>> vecLinks
 	int lastV = vecLinks.back().second;
 	int l_cost = 0;
 	for(auto link: vecLinks)
-		l_cost += inst.serv_cost(link.first, link.second);
+		l_cost += inst.trav_cost(link.first, link.second);
 
 	int insert_point = 0;
 	int best_insert_point = 0;

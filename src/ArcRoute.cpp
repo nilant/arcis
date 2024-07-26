@@ -41,8 +41,10 @@ ArcRoute::ArcRoute(Instance const& inst, ArcRoute const& other, int start, int e
 
 	std::copy(other.full_path.begin() + start, other.full_path.begin() + (end + 1), std::back_inserter(full_path));
 	for(auto const [i, j]: full_path){
+		if(inst.required(i,j)){
+			links(inst.id(i, j)) = true;
+		}
 		cost += inst.trav_cost(i, j);
-		links(inst.id(i, j)) = true;
 	}
 }
 
@@ -60,9 +62,9 @@ ArcRoute::ArcRoute(Instance const& inst, std::vector<std::pair<int, int>> const&
 	int prev_v = 0;
 	full_path.reserve(inst.nlinks);
 
-	for(int i = 0; i < route.size(); ++i){
-		int u = route[i].first - 1;       // -1 because vidal nodes starts from 1
-		int v = route[i].second - 1;
+	for(const auto & link : route){
+		int u = link.first - 1;       // -1 because vidal nodes starts from 1
+		int v = link.second - 1;
 
 		auto path = build_path(inst.prev, prev_v, u);
 		for(auto const& [i, j]: path){
@@ -72,7 +74,7 @@ ArcRoute::ArcRoute(Instance const& inst, std::vector<std::pair<int, int>> const&
 		}
 		if(u != 0 || v != 0){
 			full_path.push_back({u, v});
-			cost += inst.serv_cost(u, v);
+			cost += inst.trav_cost(u, v);
 			links(inst.id(u, v)) = true;
 		}
 
@@ -99,21 +101,22 @@ void ArcRoute::insert_links(Instance const& inst, std::vector<std::pair<int, int
 	auto postPath = build_path(inst.prev, lastV, bestNode);
 	full_path.insert(full_path.begin() + pos, postPath.begin(), postPath.end());
 	for(auto const [i, j]: postPath){
-		cost += inst.trav_cost(i, j);
 		links(inst.id(i, j)) = true;
+		cost += inst.trav_cost(i, j);
 	}
 
 	full_path.insert(full_path.begin() + pos, vecLinks.begin(), vecLinks.end());
 	for(auto const [i, j]: vecLinks){
-		cost += inst.trav_cost(i, j);
-		links(inst.id(i, j)) = true;
+			links(inst.id(i, j)) = true;
+			cost += inst.trav_cost(i, j);
 	}
 
 	auto prevPath = build_path(inst.prev, bestNode, firstU);
 	full_path.insert(full_path.begin() + pos, prevPath.begin(), prevPath.end());
 	for(auto const [i, j]: prevPath){
-		cost += inst.trav_cost(i, j);
-		links(inst.id(i, j)) = true;
+
+			links(inst.id(i, j)) = true;
+			cost += inst.trav_cost(i, j);
 	}
 
 	check_cost(inst);
@@ -128,16 +131,18 @@ void ArcRoute::remove_links(Instance const& inst, int fromLink, int toLink){
 	for(int linkIndex = fromLink; linkIndex <= toLink; linkIndex++){
 		int u = full_path[linkIndex].first;
 		int v = full_path[linkIndex].second;
-		cost -= inst.serv_cost(u, v);
-		links(inst.id(u, v)) = false;
+
+			links(inst.id(u, v)) = false;
+			cost -= inst.trav_cost(u, v);
 	}
 	full_path.erase(full_path.begin() + fromLink, full_path.begin() + toLink + 1);
 
 	auto path = build_path(inst.prev, prev, post);
 	full_path.insert(full_path.begin() + fromLink, path.begin(), path.end());
 	for(auto const [i, j]: path){
-		cost += inst.trav_cost(i, j);
-		links(inst.id(i, j)) = true;
+
+			links(inst.id(i, j)) = true;
+			cost += inst.trav_cost(i, j);
 	}
 	check_cost(inst);
 }
