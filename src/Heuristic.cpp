@@ -22,6 +22,7 @@ Result run(Instance& inst, Args const& args, GRBEnv& env, RandomGenerator& rand_
 	prepro.run(inst,rand_gen);
 
 // -------------------------------------------------------- //
+	timer.start("vidal");
 
 	std::vector<ArcRoute> all_routes;
 	all_routes.reserve(inst.horizon * inst.nvehicles);
@@ -51,11 +52,10 @@ Result run(Instance& inst, Args const& args, GRBEnv& env, RandomGenerator& rand_
 	BestSolution best(inst, all_routes, rt_res);
 	int rt_cost = best.cost;
 
-
 // -------------------------------------------------------- //
 
 	int timelimit_ls = args.timelimit - timer.duration("vidal");
-	local_search(env, inst, args, best, rt_res, timelimit_ls, 3);
+	local_search(env, inst, args, rand_gen, best, rt_res, timelimit_ls, 3);
 
 	timer.stop("total");
 
@@ -104,7 +104,7 @@ Result heur(Instance& inst, Args const& args) {
 
 	double timelimit = args.timelimit;
 	auto res = run(inst, args, env, rand_gen, timelimit);
-	if (std::abs(res.total_time - timelimit) > 10) {
+	while (timelimit - res.total_time > 5.0) {
 		timelimit -= res.total_time;
 		fmt::print("restart with residual timelimit {}\n", timelimit);
 		res = run(inst, args, env, rand_gen, timelimit);

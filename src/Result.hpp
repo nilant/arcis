@@ -25,13 +25,16 @@ struct Result {
     double total_time{0};
 
     double time_ls{0};
-    int iter_ls{0};
+    int iter_ls{0}; // total iter of all restart
 
-    double best_time_ls{0};
-    int best_iter_ls{0};
+    double best_time_ls{0}; // best for all resatrt
+    int best_iter_ls{0}; // best for all resatrt
 
     int nroutes{0};
     int lb{0};
+
+    int restart{0};
+    int best_restart{0};
 
     void write_json(fs::path const& file_path); 
     void print();

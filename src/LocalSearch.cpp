@@ -156,25 +156,23 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 	return new_routes;
 }
 
-double local_search(GRBEnv& env, Instance& inst, Args const& args, BestSolution& curr_best, RTResult& curr_rt_res,
+double local_search(GRBEnv& env, Instance& inst, Args const& args, RandomGenerator& rand_gen, BestSolution& curr_best, RTResult& curr_rt_res,
                   int timelimit, int iterlimit){
 
 	Timer timer{};
 	timer.start("local");
 
 	fmt::print("iterlimit={}, timelimit={}\n", iterlimit, timelimit);
-	auto t0 = std::chrono::high_resolution_clock::now();
 
 	double runtime = 0;
 	int best_cost = curr_best.cost;
 	double gurobi_time = curr_rt_res.runtime;
 	int prev_cost = std::numeric_limits<int>::max();
-	RandomGenerator rand_gen;
 
 	int iter = 0;
 	int best_iter = 0;
 	double best_time = 0;
-	for(; runtime <= timelimit; ++iter) {
+	while (iter - best_iter > iterlimit) {
 
 		auto new_routes = generate_new_routes(inst, curr_best, rand_gen);
 		fmt::print("New route generated\n");
@@ -187,20 +185,17 @@ double local_search(GRBEnv& env, Instance& inst, Args const& args, BestSolution&
 
 		fmt::print("iter={}, best={}\n", iter, best_cost);
 		auto t1 = std::chrono::high_resolution_clock::now();
-		runtime = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count()/1000.0;
 
 		if(curr_best.cost < best_cost){
 			best_cost = curr_best.cost;
 			best_iter = iter;
 			best_time = runtime;
 		}
-		prev_cost = best_cost;
-		if (iter - best_iter > iterlimit) {
-			timer.stop("local");
-			local_search_time += timer.duration("local");
 
-			return timer.duration("local");
-		}
+		timer.stop("local");
+		local_search_time += timer.duration("local");
+
+		return timer.duration("local");
 	}
 
 	curr_best.iter = iter;
