@@ -68,8 +68,8 @@ Result run(Instance& inst, Args const& args, GRBEnv& env, int timelimit) {
 	res.vidal_time = RouteSolver::call_time;
 	res.rt_time = RTModel::call_time;
 	res.ls_time = local_search_time;
-
 	res.gurobi_time = RTModel::grb_time;
+
 	res.total_time = timer.duration("total");
 
 	res.time_ls = best.time;
@@ -82,6 +82,27 @@ Result run(Instance& inst, Args const& args, GRBEnv& env, int timelimit) {
 	res.lb = lower_bound(inst);
 
 	return res;
+}
+
+void update_total_res(Result& total_res, Result& res) {
+	
+	total_res.vidal_time = RouteSolver::call_time;
+	total_res.rt_time = RTModel::call_time;
+	total_res.ls_time = local_search_time;
+	total_res.gurobi_time = RTModel::grb_time;
+
+	if (res.ls_obj < total_res.ls_obj) {
+		total_res.ls_obj = res.ls_obj;
+		total_res.vidal_obj = res.vidal_obj;
+		total_res.rt_obj = res.rt_obj;
+		total_res.rt_obj = res.rt_obj;
+		total_res.time_ls = res.time_ls;
+		total_res.iter_ls = res.iter_ls;
+		total_res.best_iter_ls = res.best_iter_ls;
+		total_res.best_time_ls = res.best_time_ls;
+		total_res.nroutes = res.nroutes;
+		total_res.lb = res.lb;
+	}
 }
 
 
@@ -99,15 +120,21 @@ Result heur(Instance& inst, Args const& args) {
 		env.set(GRB_IntParam_OutputFlag, 1);
 	#endif
 
+	Result total_res;
+
 	double timelimit = args.timelimit;
 	auto res = run(inst, args, env, timelimit);
+	update_total_res(total_res, res);
+
 	if (std::abs(res.total_time - timelimit) > 10) {
 		timelimit -= res.total_time;
 		fmt::print("restart with residual timelimit {}\n", timelimit);
 		res = run(inst, args, env, timelimit);
+		update_total_res(total_res, res);
 	}
 
 	timer.stop("total");
+	total_res.total_time = timer.duration("total");
 
 // -------------------------------------------------------- //
 
