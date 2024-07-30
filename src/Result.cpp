@@ -20,18 +20,17 @@ void Result::write_json(fs::path const& file_path) {
     jsol["rt_obj"] = rt_obj;
     jsol["ls_obj"] = ls_obj;
     jsol["vidal_time"] = vidal_time;
-    jsol["rt_time"] = rt_time;
-    jsol["ls_time"] = ls_time;
     jsol["gurobi_time"] = gurobi_time;
     jsol["total_time"] = total_time;
     jsol["nroutes"] = nroutes;
-    jsol["iter_ls"] = iter_ls;
-    jsol["time_ls"] = time_ls;
+    jsol["ls_iter"] = ls_iter;
+    jsol["ls_time"] = ls_time;
     jsol["best_time_ls"] = best_time_ls;
     jsol["best_iter_ls"] = best_iter_ls;
     jsol["lb"] = lb;
 
     jsol["best_restart"] = best_restart;
+    jsol["total_restart"] = total_restart;
 
     j[name] = jsol;
 

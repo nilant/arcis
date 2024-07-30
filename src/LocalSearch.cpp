@@ -157,35 +157,36 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 }
 
 std::pair<double, int> local_search(GRBEnv& env, Instance& inst, Args const& args, RandomGenerator& rand_gen, BestSolution& curr_best, RTResult& curr_rt_res,
-                  int timelimit, int iterlimit){
+                  int timelimit, int iterlimit, double& gurobi_time){
 
 	Timer timer{};
-	timer.start("local");
 	timer.start("iter");
 
 	fmt::print("iterlimit={}, timelimit={}\n", iterlimit, timelimit);
 
 	double runtime = 0;
 	int best_cost = curr_best.cost;
-	double gurobi_time = curr_rt_res.runtime;
 	int prev_cost = std::numeric_limits<int>::max();
 
-	int iter = 0;
+	int iter = 1;
 	int best_iter = 0;
 	double best_time = 0;
-	while (iter - best_iter > iterlimit) {
+	while (iter - best_iter <= iterlimit) {
 
+		timer.start("local");
+		
 		auto new_routes = generate_new_routes(inst, curr_best, rand_gen);
 		fmt::print("New route generated\n");
 		RTModel rt_model{env, inst, args, new_routes};
+		
+		timer.stop("local");
+		runtime += timer.duration("local");
 
 		curr_rt_res = rt_model.optimize(inst, new_routes);
+		gurobi_time += curr_rt_res.runtime;
 		curr_best = BestSolution(inst, new_routes, curr_rt_res);
 
-		gurobi_time += curr_best.gurobi_time;
-
-		fmt::print("iter={}, best={}\n", iter, best_cost);
-		auto t1 = std::chrono::high_resolution_clock::now();
+		fmt::print("curr_iter={}, curr_best={}\n", iter, best_cost);
 
 		if(curr_best.cost < best_cost){
 			timer.stop("iter");
@@ -193,21 +194,14 @@ std::pair<double, int> local_search(GRBEnv& env, Instance& inst, Args const& arg
 			best_iter = iter;
 			best_time = timer.duration("iter");
 		}
-
-		timer.stop("local");
-		return {timer.duration("local"), iter};
+		iter++;
 	}
 
-	curr_best.iter = iter;
-	curr_best.time = runtime;
-
-	curr_best.best_time = best_time;
-	curr_best.best_iter = best_iter;
-
-	curr_best.gurobi_time = gurobi_time;
+	curr_best.iter = best_iter;
+	curr_best.time = best_time;
 
 	fmt::print("best_iter={}, best_cost={}\n", best_iter, best_cost);
 
 	timer.stop("local");
-	return {timer.duration("local"), iter};
+	return {runtime, iter};
 }

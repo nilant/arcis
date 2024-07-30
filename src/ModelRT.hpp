@@ -27,11 +27,6 @@ struct RTModel {
 
     Timer timer{};
 
-    static double call_time;
-    static double grb_time;
-
     RTModel(GRBEnv& env, Instance const& inst, Args const& args, std::vector<ArcRoute> const& routes);
     RTResult optimize(Instance const& inst, std::vector<ArcRoute> const& routes);
-    double runtime();
-    double time();
 };
