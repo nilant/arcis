@@ -2,8 +2,8 @@
 #include "../libs/argh.h"
 
 Args::Args(int argc, char* argv[]) {
-    argh::parser cmdl({"--timelimit", "--memlimit", "--iterlimit",
-                       "--threads", "--seed"});
+    argh::parser cmdl({"--timelimit", "--memlimit", "--vidal_iterlimit",
+                       "ls_iterlimit", "--threads", "--seed"});
     cmdl.parse(argc, argv, argh::parser::SINGLE_DASH_IS_MULTIFLAG);
 
     input_file = fs::path(cmdl[1]);
