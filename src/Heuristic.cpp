@@ -63,7 +63,7 @@ Result run(Instance& inst, Args const& args, GRBEnv& env, RandomGenerator& rand_
 // -------------------------------------------------------- //
 
 	int timelimit_ls = args.timelimit - timer.duration("vidal");
-	auto [ls_time, ls_iter] = local_search(env, inst, args, rand_gen, best, rt_res, timelimit_ls, 3, gurobi_time);
+	auto [ls_time, ls_iter] = local_search(env, inst, args, rand_gen, best, rt_res, timelimit_ls, 1, gurobi_time);
 
 	timer.stop("total");
 
