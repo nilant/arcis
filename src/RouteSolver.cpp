@@ -64,7 +64,7 @@ std::vector<ArcRoute> RouteSolver::solve_routes(Instance const& inst, int t, Car
 	auto t1 = std::chrono::high_resolution_clock::now();
 	_runtime = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count(); 
 
-	RouteSolver::call_time += _runtime;
+	RouteSolver::call_time += _runtime / 1000;
 
     return routes;
 }

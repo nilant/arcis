@@ -31,6 +31,8 @@ void Result::write_json(fs::path const& file_path) {
     jsol["best_iter_ls"] = best_iter_ls;
     jsol["lb"] = lb;
 
+    jsol["best_restart"] = best_restart;
+
     j[name] = jsol;
 
     out << j << std::endl;

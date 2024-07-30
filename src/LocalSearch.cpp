@@ -156,11 +156,12 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 	return new_routes;
 }
 
-double local_search(GRBEnv& env, Instance& inst, Args const& args, RandomGenerator& rand_gen, BestSolution& curr_best, RTResult& curr_rt_res,
+std::pair<double, int> local_search(GRBEnv& env, Instance& inst, Args const& args, RandomGenerator& rand_gen, BestSolution& curr_best, RTResult& curr_rt_res,
                   int timelimit, int iterlimit){
 
 	Timer timer{};
 	timer.start("local");
+	timer.start("iter");
 
 	fmt::print("iterlimit={}, timelimit={}\n", iterlimit, timelimit);
 
@@ -187,15 +188,14 @@ double local_search(GRBEnv& env, Instance& inst, Args const& args, RandomGenerat
 		auto t1 = std::chrono::high_resolution_clock::now();
 
 		if(curr_best.cost < best_cost){
+			timer.stop("iter");
 			best_cost = curr_best.cost;
 			best_iter = iter;
-			best_time = runtime;
+			best_time = timer.duration("iter");
 		}
 
 		timer.stop("local");
-		local_search_time += timer.duration("local");
-
-		return timer.duration("local");
+		return {timer.duration("local"), iter};
 	}
 
 	curr_best.iter = iter;
@@ -207,8 +207,7 @@ double local_search(GRBEnv& env, Instance& inst, Args const& args, RandomGenerat
 	curr_best.gurobi_time = gurobi_time;
 
 	fmt::print("best_iter={}, best_cost={}\n", best_iter, best_cost);
-	timer.stop("local");
 
-	local_search_time += timer.duration("local");
-	return timer.duration("local");
+	timer.stop("local");
+	return {timer.duration("local"), iter};
 }

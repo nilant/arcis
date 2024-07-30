@@ -6,7 +6,7 @@ import subprocess
 import time
 import sys
 
-indices = [2, 4, 5, 6, 7]
+indices = [2, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15]
 remote_dir = 'arcis'
 data_dir = 'data/all'
 
