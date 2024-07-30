@@ -33,7 +33,7 @@ Result run(Instance& inst, Args const& args, GRBEnv& env, RandomGenerator& rand_
 		if(!carp_inst.link_to_visit.empty()){
 
 		auto solver = RouteSolver{};
-		auto routes = solver.solve_routes(inst, k, carp_inst, static_cast<int>(args.timelimit*0.1), args.iterlimit);
+		auto routes = solver.solve_routes(inst, k, carp_inst, static_cast<int>(args.timelimit*0.1), args.vidal_iterlimit);
 		all_routes.insert(all_routes.end(), routes.begin(), routes.end());
 
 			for(auto const& route: routes){
@@ -63,7 +63,7 @@ Result run(Instance& inst, Args const& args, GRBEnv& env, RandomGenerator& rand_
 // -------------------------------------------------------- //
 
 	int timelimit_ls = args.timelimit - timer.duration("vidal");
-	auto [ls_time, ls_iter] = local_search(env, inst, args, rand_gen, best, rt_res, timelimit_ls, 3, gurobi_time);
+	auto [ls_time, ls_iter] = local_search(env, inst, args, rand_gen, best, rt_res, timelimit_ls, args.ls_iterlimit, gurobi_time);
 
 	timer.stop("total");
 

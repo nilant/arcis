@@ -23,7 +23,8 @@ algos = ["bin/arcis"]
 timelimit = 3600
 
 # iterlimit
-iterlimit = 1000
+vidal_iterlimit = 1000
+ls_iterlimit = 3
 
 # memlimit
 memlimit = 16
