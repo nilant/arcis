@@ -19,9 +19,9 @@ int main(int argc, char* argv[]) {
     Instance inst = read_json(args.input_file); 
     
     fmt::print("\nOptimizing {} with timelimit={}, iterlimit={}, memlimit={}, threads={}, seed={}...\n", 
-                inst.name, args.timelimit, args.iterlimit, args.memlimit, args.threads, args.seed);
+                inst.name, args.timelimit, args.vidal_iterlimit, args.memlimit, args.threads, args.seed);
 
-    route_solver_test(inst, args.timelimit, args.iterlimit);
+    route_solver_test(inst, args.timelimit, args.vidal_iterlimit);
 
     return 0;
 }

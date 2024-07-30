@@ -33,7 +33,8 @@ if __name__ == '__main__':
     parser.add_argument('--config', type=pathlib.Path, help='configuration file')
     parser.add_argument('--exec', help='name of the executable')
     parser.add_argument('--timelimit', type=float, default=float('inf'))
-    parser.add_argument('--iterlimit', type=float, default=float('inf'))
+    parser.add_argument('--vidal_iterlimit', type=float, default=float('inf'))
+    parser.add_argument('--ls_iterlimit', type=float, default=float('inf'))
     parser.add_argument('--memlimit', type=float, default=float('inf'))
     parser.add_argument('--threads', type=int, default=0, help='number of threads to use')
     parser.add_argument('--seed', type=int, default=0, help='random seed')
@@ -69,12 +70,19 @@ if __name__ == '__main__':
         timelimit = args.timelimit
     cmdl_args.append(str(timelimit))
 
-    cmdl_args.append('--iterlimit')
+    cmdl_args.append('--vidal_iterlimit')
     if config:
-        iterlimit = config.get('iterlimit', float('inf'))
+        vidal_iterlimit = config.get('vidal_iterlimit', float('inf'))
     else:
-        iterlimit = args.iterlimit
-    cmdl_args.append(str(iterlimit))
+        vidal_iterlimit = args.vidal_iterlimit
+    cmdl_args.append(str(vidal_iterlimit))
+
+    cmdl_args.append('--ls_iterlimit')
+    if config:
+        ls_iterlimit = config.get('ls_iterlimit', float('inf'))
+    else:
+        ls_iterlimit = args.ls_iterlimit
+    cmdl_args.append(str(ls_iterlimit))
 
     cmdl_args.append('--memlimit')
     if config:

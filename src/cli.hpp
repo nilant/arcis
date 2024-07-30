@@ -6,7 +6,8 @@ namespace fs = std::filesystem;
 struct Args {
 
     fs::path input_file;
-    int iterlimit;
+    int ls_iterlimit;
+    int vidal_iterlimit;
     int timelimit;
     int memlimit;
     int threads;
