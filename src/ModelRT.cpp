@@ -171,7 +171,7 @@ RTResult RTModel::optimize(Instance const& inst, std::vector<ArcRoute> const& ro
 		std::exit(1);
 	}
 
-	int nSol = model.get(GRB_IntAttr_SolCount);
+	/*int nSol = model.get(GRB_IntAttr_SolCount);
 	if(nSol > 1){
 		double obj = model.get(GRB_DoubleAttr_ObjVal);
 		model.set(GRB_IntParam_SolutionNumber, 1);
@@ -180,7 +180,7 @@ RTResult RTModel::optimize(Instance const& inst, std::vector<ArcRoute> const& ro
 		} else {
 				return RTResult(inst, y, x, routes, cost, timer.duration("gurobi"), true);
 		}
-	}
+	}*/
 
     return RTResult(inst, y, x, routes, cost, timer.duration("gurobi"));
 }

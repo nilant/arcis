@@ -6,8 +6,7 @@
 #include "Preprocessing.hpp"
 
 
-bool IsSubset(std::vector<int> const& A, std::vector<int> const& B)
-{
+bool IsSubset(std::vector<int> const& A, std::vector<int> const& B){
 	// std::sort(A.begin(), A.end());
 	// std::sort(B.begin(), B.end());
 	return std::includes(A.begin(), A.end(), B.begin(), B.end());
@@ -40,13 +39,13 @@ CarpInstance::CarpInstance(){
 void Preprocessing::run(const Instance& inst, RandomGenerator& rand_gen){
 
 	std::vector<int> link_id(inst.nreq_links);
-	for (int i = 0; i < link_id.size(); ++i) {
+	for(int i = 0; i < link_id.size(); ++i){
 		link_id[i] = i;
 	}
 
 	std::shuffle(link_id.begin(), link_id.end(), rand_gen.gen);
 
-	for(int t=0; t < inst.horizon; t++)
+	for(int t = 0; t < inst.horizon; t++)
 		carpMap[t] = CarpInstance(1);
 
 	for(int sp = 0; sp < inst.nsubperiods; sp++){
@@ -64,11 +63,10 @@ void Preprocessing::run(const Instance& inst, RandomGenerator& rand_gen){
 				for(auto t: periods)
 					if(!carpMap[t].link_to_visit.empty() && !carpMap[t].link_to_visit.count(l))
 						chooseT.push_back(t);
-				if (chooseT.size() > freq) {
+				if(chooseT.size() > freq){
 					std::shuffle(chooseT.begin(), chooseT.end(), rand_gen.gen);
-				}
-				else if (chooseT.size() < freq) {
-					while(chooseT.size() < freq) {
+				}else if(chooseT.size() < freq){
+					while(chooseT.size() < freq){
 						int periods_max_index = (int) periods.size() - 1;
 						int rand_t = periods.at(rand_gen.getRandomInt(periods_max_index));
 						bool not_in_choosT = std::find(chooseT.begin(), chooseT.end(), rand_t) == chooseT.end();
@@ -76,12 +74,11 @@ void Preprocessing::run(const Instance& inst, RandomGenerator& rand_gen){
 							chooseT.push_back(rand_t);
 					}
 				}
-
-				for(int f = 0; f < freq; f++){
+				for(int f = 0; f < freq; f++)
 					carpMap[chooseT[f]].link_to_visit.insert(l);
-				}
 			}
 		}
 	}
+
 }
 

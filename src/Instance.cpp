@@ -6,7 +6,7 @@
 #include "utils.hpp"
 
 
-Instance::Instance(int nvertices, int nreq_links, int nsubperiods, int horizon) : required{nvertices, nvertices},
+Instance::Instance(int nvertices, int nreq_links, int nsubperiods, int horizon, int nlinks) : required{nvertices, nvertices},
                                                                      type{nvertices, nvertices}, 
                                                                      id{nvertices, nvertices},
                                                                      serv_cost{nvertices, nvertices},
@@ -15,7 +15,9 @@ Instance::Instance(int nvertices, int nreq_links, int nsubperiods, int horizon) 
                                                                      dist{nvertices, nvertices},
                                                                      prev{nvertices, nvertices},
                                                                      frequencies{nreq_links, nsubperiods}, 
-                                                                     sp_matrix{nsubperiods, horizon}{
+                                                                     sp_matrix{nsubperiods, horizon},
+																	 t_l_matrix{horizon, nlinks}
+																	 {
 
     
 } 
@@ -35,11 +37,15 @@ Instance read_json(fs::path input_path) {
     }
     int nsubperiods = subperiods.size();
 
+
     int nvertices = j["nvertices"];
     int nreq_links = j["nreq_links"];
-    int horizon = j["horizon"];
+    int nnot_req_links = j["nnot_req_links"];
+	int nlinks = nreq_links + nnot_req_links;
+	int horizon = j["horizon"];
 
-    Instance inst(nvertices, nreq_links, nsubperiods, horizon);
+
+    Instance inst(nvertices, nreq_links, nsubperiods, horizon, nlinks);
     inst.nvertices = nvertices;
     inst.nreq_links = nreq_links;
     inst.nsubperiods = nsubperiods;
@@ -49,8 +55,8 @@ Instance read_json(fs::path input_path) {
     inst.horizon = horizon;
 
     inst.tot_services = j["tot_services"];
-    inst.nnot_req_links = j["nnot_req_links"];
-    inst.nlinks = inst.nreq_links + inst.nnot_req_links;
+    inst.nnot_req_links = nnot_req_links;
+    inst.nlinks = nlinks;
 
     //FIXIT
     inst.nvehicles = 1;
@@ -63,13 +69,13 @@ Instance read_json(fs::path input_path) {
     }
 
     for (int i = 0; i < nvertices; ++i) {
-        for (int j = 0; j < nvertices; ++j) {
-            inst.required(i, j) = false;
-            inst.type(i, j) = NONE;
-            inst.id(i, j) = -1;
-            inst.serv_cost(i, j) = (i == j) ? 0 : INF;
-            inst.trav_cost(i, j) = (i == j) ? 0 : INF;
-            inst.demand(i, j) = (i == j) ? 0 : 1;
+        for (int jj = 0; jj < nvertices; ++jj) {
+            inst.required(i, jj) = false;
+            inst.type(i, jj) = NONE;
+            inst.id(i, jj) = -1;
+            inst.serv_cost(i, jj) = (i == jj) ? 0 : INF;
+            inst.trav_cost(i, jj) = (i == jj) ? 0 : INF;
+            inst.demand(i, jj) = (i == jj) ? 0 : 1;
         }
     }
 
@@ -99,6 +105,14 @@ Instance read_json(fs::path input_path) {
         i++;
     }
 
+	for (int s = 0; s < inst.nsubperiods; ++s) {
+		for (int const t : subperiods[s]){
+			for(int l = 0; l < inst.nreq_links; l++){
+				inst.t_l_matrix(t, l) = 1;
+			}
+		}
+	}
+
     for (auto const& jnot_req_link : j["not_required_links"]) {
         int u = static_cast<int>(jnot_req_link["from_node"]) - 1;
         int v = static_cast<int>(jnot_req_link["to_node"]) - 1;
@@ -118,6 +132,6 @@ Instance read_json(fs::path input_path) {
 
     // floyd_warshall(inst.trav_cost, inst.dist, inst.prev);
 	RandomGenerator rand_gen{};
-	rand_floyd_warshall(inst.trav_cost, inst.dist, inst.prev, rand_gen);
+	rand_floyd_warshall(inst.trav_cost, inst.dist, inst.prev, rand_gen, inst.required);
     return inst;
 }

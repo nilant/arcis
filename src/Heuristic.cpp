@@ -13,28 +13,27 @@
 #include "timer.hpp"
 
 
-
-Result run(Instance& inst, Args const& args, GRBEnv& env, RandomGenerator& rand_gen, int timelimit) {
+Result run(Instance& inst, Args const& args, GRBEnv& env, RandomGenerator& rand_gen, int timelimit){
 
 	Timer timer{};
 	timer.start("total");
 
 	Preprocessing prepro(inst);
-	prepro.run(inst,rand_gen);
+	prepro.run(inst, rand_gen);
 
 // -------------------------------------------------------- //
 	timer.start("vidal");
 
 	std::vector<ArcRoute> all_routes;
-	all_routes.reserve(inst.horizon * inst.nvehicles);
+	all_routes.reserve(inst.horizon*inst.nvehicles);
 
 	double vidal_cost{0.0};
-	for (auto& [k, carp_inst] : prepro.carpMap) {
+	for(auto& [k, carp_inst]: prepro.carpMap){
 		if(!carp_inst.link_to_visit.empty()){
 
-		auto solver = RouteSolver{};
-		auto routes = solver.solve_routes(inst, k, carp_inst, static_cast<int>(args.timelimit*0.1), args.iterlimit);
-		all_routes.insert(all_routes.end(), routes.begin(), routes.end());
+			auto solver = RouteSolver{};
+			auto routes = solver.solve_routes(inst, k, carp_inst, static_cast<int>(args.timelimit*0.1), args.iterlimit);
+			all_routes.insert(all_routes.end(), routes.begin(), routes.end());
 
 			for(auto const& route: routes){
 				vidal_cost += route.cost;
@@ -44,7 +43,7 @@ Result run(Instance& inst, Args const& args, GRBEnv& env, RandomGenerator& rand_
 
 	int nroutes = (int) all_routes.size();
 
-	for (auto& route : all_routes) {
+	for(auto& route: all_routes){
 		route.mipStart = true;
 	}
 
@@ -52,7 +51,7 @@ Result run(Instance& inst, Args const& args, GRBEnv& env, RandomGenerator& rand_
 	fmt::print("vidal_cost={}\nVIDAL END!\n", vidal_cost);
 // -------------------------------------------------------- //
 
-	RTModel rt_model{env, inst, args, all_routes};	
+	RTModel rt_model{env, inst, args, all_routes};
 	RTResult rt_res = rt_model.optimize(inst, all_routes);
 
 	double gurobi_time = rt_res.runtime;
@@ -63,7 +62,7 @@ Result run(Instance& inst, Args const& args, GRBEnv& env, RandomGenerator& rand_
 // -------------------------------------------------------- //
 
 	int timelimit_ls = args.timelimit - timer.duration("vidal");
-	auto [ls_time, ls_iter] = local_search(env, inst, args, rand_gen, best, rt_res, timelimit_ls, 3, gurobi_time);
+	auto [ls_time, ls_iter] = local_search(env, inst, args, rand_gen, best, rt_res, timelimit_ls, 1, gurobi_time);
 
 	timer.stop("total");
 
@@ -91,9 +90,9 @@ Result run(Instance& inst, Args const& args, GRBEnv& env, RandomGenerator& rand_
 	return res;
 }
 
-void update_total_result(Result& total_res, Result& res, Timer& timer) {
+void update_total_result(Result& total_res, Result& res, Timer& timer){
 
-	if (res.ls_obj < total_res.ls_obj) {
+	if(res.ls_obj < total_res.ls_obj){
 		total_res.ls_obj = res.ls_obj;
 		total_res.vidal_obj = res.vidal_obj;
 		total_res.rt_obj = res.rt_obj;
@@ -115,7 +114,7 @@ void update_total_result(Result& total_res, Result& res, Timer& timer) {
 	total_res.lb = res.lb;
 }
 
-Result heur(Instance& inst, Args const& args) {
+Result heur(Instance& inst, Args const& args){
 
 // -------------------------------------------------------- //
 	Timer timer{};
@@ -126,11 +125,11 @@ Result heur(Instance& inst, Args const& args) {
 
 	GRBEnv env{};
 
-	#ifdef NDEBUG
-		env.set(GRB_IntParam_OutputFlag, 0);
-	#else
-		env.set(GRB_IntParam_OutputFlag, 1);
-	#endif
+#ifdef NDEBUG
+	env.set(GRB_IntParam_OutputFlag, 0);
+#else
+	env.set(GRB_IntParam_OutputFlag, 1);
+#endif
 
 	Result total_result;
 	total_result.name = "arcis";
@@ -138,8 +137,8 @@ Result heur(Instance& inst, Args const& args) {
 
 	int restart = 0;
 	double residual_timelimit = timelimit;
-	
-	while (residual_timelimit > 5.0) {
+
+	while(residual_timelimit > 5.0){
 		fmt::print("restart with residual timelimit {}\n", residual_timelimit);
 		auto res = run(inst, args, env, rand_gen, timelimit);
 		residual_timelimit -= res.total_time;

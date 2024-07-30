@@ -47,7 +47,7 @@ ArcRoute removes(Instance const& inst, int fromLink, int toLink, ArcRoute const&
 std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& best_sol, RandomGenerator& rand_gen){
 
 	std::vector<ArcRoute> new_routes;
-	rand_floyd_warshall(inst.trav_cost, inst.dist, inst.prev, rand_gen);
+	rand_floyd_warshall(inst.trav_cost, inst.dist, inst.prev, rand_gen, inst.required);
 
 	for(int t = 0; t < inst.horizon; ++t){
 		for(auto& route: best_sol.best_routes[t]){
@@ -55,33 +55,62 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 			new_routes.back().mipStart = true;
 			new_routes.back().period = t;
 			for(int fromIndex = 0; fromIndex < route.full_path.size(); fromIndex++){
+				int fromU = route.full_path[fromIndex].first;
+				int fromV = route.full_path[fromIndex].second;
+				if(!inst.required(fromU, fromV))
+					continue;
 
-				std::vector<int> randToIndex;
+				std::vector<int> toIndexVector;
 				int prevNewRouteCost = route.cost;
 				for(int toIndex = fromIndex; toIndex < route.full_path.size(); toIndex++){
+					int toU = route.full_path[fromIndex].first;
+					int toV = route.full_path[fromIndex].second;
+					if(!inst.required(toU, toV))
+						continue;
+
 					auto new_route1 = removes(inst, fromIndex, toIndex, route);
 					if(new_route1.cost < prevNewRouteCost && !new_route1.full_path.empty()){
-						randToIndex.push_back(toIndex);
+						toIndexVector.push_back(toIndex);
+						// de-comment if you want to add all these routes (as before...)
+						// auto r1 = split_route_at_depot(inst, new_route1);
+						// new_routes.insert(new_routes.end(), r1.begin(), r1.end());
+						prevNewRouteCost = new_route1.cost;
+					}
+				}
+
+				if(!toIndexVector.empty()){
+					// std::shuffle(toIndexVector.begin(), toIndexVector.end(), rand_gen.gen);
+					int size = (int) toIndexVector.size();
+					int maxTo = ceil(size*0.5);
+					for(int index = 0; index < maxTo; index++){
+						int toIndex = toIndexVector[index];
+
+						///////////////////////////////////////////////////////////////////////////////////
+						auto new_route1 = removes(inst, fromIndex, toIndex, route);
 						auto r1 = split_route_at_depot(inst, new_route1);
 						new_routes.insert(new_routes.end(), r1.begin(), r1.end());
-						prevNewRouteCost = new_route1.cost;
-						/*auto end_it = route.full_path.begin() + toIndex + 1; // +1 per includere to_index
+						///////////////////////////////////////////////////////////////////////////////////
+
+						auto end_it = route.full_path.begin() + toIndex + 1; // +1 per includere to_index
 						std::vector<std::pair<int, int>> vecLinks;
 						std::copy(route.full_path.begin() + fromIndex, end_it, std::back_inserter(vecLinks));
+
 						for(int tt = 0; tt < inst.horizon; ++tt){
-							// if(t != tt){
+							if(t != tt){
+								int indexRoute = 0;
 								int bestIndexRoute = -1;
 								int bestDiffCost = INF;
-								int indexRoute = 0;
 								for(auto const& second_route: best_sol.best_routes[tt]){
-									bool checkIfContain = true;
+									bool checkIfContainOrNotRequired = true;
 									for(auto l: vecLinks){
-										if(!second_route.contains(inst.id(l.first, l.second))){
-											checkIfContain = false;
+										bool doNotContain = !second_route.contains(inst.id(l.first, l.second));
+										bool isRequired = inst.t_l_matrix(tt, inst.id(l.first, l.second)) > 0;
+										if(isRequired && doNotContain){
+											checkIfContainOrNotRequired = false;
 											break;
 										}
 									}
-									if(checkIfContain){
+									if(checkIfContainOrNotRequired){
 										indexRoute++;
 										continue;
 									}
@@ -89,62 +118,20 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 									if(new_route2.cost - second_route.cost < bestDiffCost){
 										bestDiffCost = new_route2.cost - second_route.cost;
 										bestIndexRoute = indexRoute;
+									}else if(new_route2.cost - second_route.cost == bestDiffCost){
+										int coin = (int) round(rand_gen.rand_0_1());
+										if(coin){
+											bestDiffCost = new_route2.cost - second_route.cost;
+											bestIndexRoute = indexRoute;
+										}
 									}
 									indexRoute++;
 								}
 								if(bestIndexRoute > -1){
-									auto new_route2 = inserts(inst, vecLinks,
-									                          best_sol.best_routes[tt][bestIndexRoute]);
+									auto new_route2 = inserts(inst, vecLinks, best_sol.best_routes[tt][bestIndexRoute]);
 									auto r2 = split_route_at_depot(inst, new_route2);
 									new_routes.insert(new_routes.end(), r2.begin(), r2.end());
 								}
-							// }
-						}*/
-					}
-				}
-
-				if(!randToIndex.empty()){
-					int maxRand = randToIndex.size() - 1;
-					std::vector<int>::size_type random_index = rand_gen.getRandomInt(maxRand);
-					int toIndex = randToIndex[random_index];
-					auto end_it = route.full_path.begin() + toIndex + 1; // +1 per includere to_index
-					std::vector<std::pair<int, int>> vecLinks;
-					std::copy(route.full_path.begin() + fromIndex, end_it, std::back_inserter(vecLinks));
-
-					for (int tt = 0; tt < inst.horizon; ++tt) {
-						if(t != tt){
-							int indexRoute = 0;
-							int bestIndexRoute = -1;
-							int bestDiffCost = INF;
-							for(auto const& second_route: best_sol.best_routes[tt]){
-								bool checkIfContain = true;
-								for(auto l: vecLinks){
-									if(!second_route.contains(inst.id(l.first, l.second))){
-										checkIfContain = false;
-										break;
-									}
-								}
-								if(checkIfContain){
-									indexRoute++;
-									continue;
-								}
-								auto new_route2 = inserts(inst, vecLinks, second_route);
-								if(new_route2.cost - second_route.cost < bestDiffCost){
-									bestDiffCost = new_route2.cost - second_route.cost;
-									bestIndexRoute = indexRoute;
-								}else if(new_route2.cost - second_route.cost == bestDiffCost){
-									int coin = rand_gen.coin();
-									if(coin){
-										bestDiffCost = new_route2.cost - second_route.cost;
-										bestIndexRoute = indexRoute;
-									}
-								}
-								indexRoute++;
-							}
-							if(bestIndexRoute > -1){
-								auto new_route2 = inserts(inst, vecLinks, best_sol.best_routes[tt][bestIndexRoute]);
-								auto r2 = split_route_at_depot(inst, new_route2);
-								new_routes.insert(new_routes.end(), r2.begin(), r2.end());
 							}
 						}
 					}

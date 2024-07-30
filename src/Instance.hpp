@@ -31,6 +31,7 @@ struct Instance {
     mdarray<int, 2> serv_cost;
     mdarray<int, 2> trav_cost;
     mdarray<int, 2> demand;
+	mdarray<int, 2> t_l_matrix;
 
     //(nreq_links, nsubperiods)
     mdarray<int, 2> frequencies;
@@ -41,7 +42,7 @@ struct Instance {
     mdarray<int, 2> dist;
     mdarray<int, 2> prev;
 
-    explicit Instance(int nvertices, int nreq_links, int nsubperiods, int horizon);
+    explicit Instance(int nvertices, int nreq_links, int nsubperiods, int horizon, int nlinks);
 };
 
 Instance read_json(fs::path input_path);
