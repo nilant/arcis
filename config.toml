@@ -11,7 +11,7 @@ instance_stats = []
 models_order = []
 
 # columns order for results latex table
-algos_order = ["lb", "vidal_obj", "vidal_time", "rt_obj", "ls_obj", "ls_time", "gurobi_time", "total_time", "nroutes", "iter_ls", "time_ls", "best_time_ls", "best_iter_ls", "best_restart", "total_restart"]
+algos_order = ["lb", "vidal_obj", "vidal_time", "rt_obj", "ls_obj", "ls_time", "gurobi_time", "total_time", "nroutes", "ls_time", "ls_time", "best_time_ls", "best_iter_ls", "best_restart", "total_restart"]
 
 # models
 models = []
