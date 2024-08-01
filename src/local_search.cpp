@@ -165,19 +165,23 @@ std::pair<double, int> local_search(GRBEnv& env, Instance& inst, Args const& arg
 	int best_iter = 0;
 	double best_time = 0;
 	double residual_time = timelimit;
-	while (iter - best_iter <= iterlimit /*&& residual_time > 0.0*/) {
+	while (iter - best_iter <= iterlimit) {
 
 		timer.start("local");
 		
 		auto new_routes = generate_new_routes(inst, curr_best, rand_gen);
-		fmt::print("New route generated\n");
-		RTModel rt_model{env, inst, new_routes, std::max(0.0, residual_time), args.threads};
-		
-		timer.stop("local");
-		runtime += timer.duration("local");
 
-		curr_rt_res = rt_model.optimize(inst, new_routes);
-		gurobi_time += curr_rt_res.runtime;
+		fmt::print("New route generated\n");
+
+		if (residual_time > 0.0) {
+			RTModel rt_model{env, inst, new_routes, residual_time, args.threads};
+
+			timer.stop("local");
+			runtime += timer.duration("local");
+
+			curr_rt_res = rt_model.optimize(inst, new_routes);
+			gurobi_time += curr_rt_res.runtime;
+		}
 		
 		residual_time = residual_time - runtime - curr_rt_res.runtime;
 
