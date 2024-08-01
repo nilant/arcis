@@ -10,58 +10,39 @@ RTResult::RTResult(Instance const& inst, mdarray<GRBVar, 2> const& y, mdarray<GR
                    std::vector<ArcRoute> const& routes, int obj, double time) : y_val{y.dimension(0), y.dimension(1)},
                                                                                 x_val{x.dimension(0), x.dimension(1)}{
 
-	for(int r = 0; r < y_val.dimension(0); ++r){
-		int t = routes[r].period;
-		if(routes[r].mipStart){
-			for(int tt=0; tt<inst.horizon; tt++)
-				y_val(r, tt) = std::lrint(y(r, tt).get(GRB_DoubleAttr_X));
+	try {																			
+		for(int r = 0; r < y_val.dimension(0); ++r){
+			int t = routes[r].period;
+			if(routes[r].mipStart){
+				for(int tt=0; tt<inst.horizon; tt++)
+					y_val(r, tt) = std::lrint(y(r, tt).get(GRB_DoubleAttr_X));
+			}
+			else
+				y_val(r, t) = std::lrint(y(r, t).get(GRB_DoubleAttr_X));
 		}
-		else
-			y_val(r, t) = std::lrint(y(r, t).get(GRB_DoubleAttr_X));
-	}
 
-	for(int l = 0; l < x_val.dimension(0); ++l){
-		for(int t = 0; t < x_val.dimension(1); ++t){
-			x_val(l, t) = std::lrint(x(l, t).get(GRB_DoubleAttr_X));
-		}
+		for(int l = 0; l < x_val.dimension(0); ++l){
+			for(int t = 0; t < x_val.dimension(1); ++t){
+				x_val(l, t) = std::lrint(x(l, t).get(GRB_DoubleAttr_X));
+			}
 	}
-
+	} catch(GRBException& e) {
+		fmt::print("Error code={}\n", e.getErrorCode());
+		fmt::print("Error message={}\n", e.getMessage());
+		std::exit(1);
+	}
 	cost = obj;
 	runtime = time;
 }
 
-RTResult::RTResult(Instance const& inst, mdarray<GRBVar, 2> const& y, mdarray<GRBVar, 2> const& x,
-                   std::vector<ArcRoute> const& routes, int obj, double time, bool uno) : y_val{y.dimension(0),
-                                                                                                y.dimension(1)},
-                                                                                          x_val{x.dimension(0),
-                                                                                                x.dimension(1)}{
 
-	for(int r = 0; r < y_val.dimension(0); ++r){
-		int t = routes[r].period;
-		if(routes[r].mipStart){
-			for(int tt=0; tt<inst.horizon; tt++)
-				y_val(r, tt) = std::lrint(y(r, tt).get(GRB_DoubleAttr_Xn));
-		}
-		else
-			y_val(r, t) = std::lrint(y(r, t).get(GRB_DoubleAttr_Xn));
-	}
-
-	for(int l = 0; l < x_val.dimension(0); ++l){
-		for(int t = 0; t < x_val.dimension(1); ++t){
-			x_val(l, t) = std::lrint(x(l, t).get(GRB_DoubleAttr_Xn));
-		}
-	}
-
-	cost = obj;
-	runtime = time;
-}
-
-RTModel::RTModel(GRBEnv& env, Instance const& inst, Args const& args, std::vector<ArcRoute> const& routes) : model{env}, 
+RTModel::RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const& routes, double timelimit, int threads) : model{env}, 
                                                                                            x{inst.nreq_links, inst.horizon},
                                                                                            y{routes.size(), inst.horizon} {
     
     try {
-        model.set(GRB_StringAttr_ModelName, "RTModel");                                                                                 
+        model.set(GRB_StringAttr_ModelName, "RTModel");                                                                         
+		model.set(GRB_DoubleParam_TimeLimit, timelimit);
 
 		// y's variables
 		for(int r = 0; r < routes.size(); ++r){
@@ -135,7 +116,7 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, Args const& args, std::vecto
 		//     model.addConstr(expr1 <= inst.quantity * expr2, fmt::format("9_{}", t));
 		// }
 
-		model.set(GRB_IntParam_Threads, args.threads);
+		model.set(GRB_IntParam_Threads, threads);
 		model.update();
 
 	}catch(GRBException& e){
@@ -161,7 +142,7 @@ RTResult RTModel::optimize(Instance const& inst, std::vector<ArcRoute> const& ro
 			throw std::runtime_error("No feasible solution found");
 		}
 
-		if(status == GRB_OPTIMAL){
+		if(status == GRB_OPTIMAL || status == GRB_SUBOPTIMAL){
 			cost = std::lrint(model.get(GRB_DoubleAttr_ObjVal));
 		}
 

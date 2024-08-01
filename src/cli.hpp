@@ -8,10 +8,10 @@ struct Args {
     fs::path input_file;
     int ls_iterlimit;
     int vidal_iterlimit;
-    int timelimit;
     int memlimit;
     int threads;
     int seed;
+    double timelimit;
 
     Args(int argc, char* argv[]);
 };

@@ -1,7 +1,8 @@
 #include <limits>
 #include <vector>
+#include <algorithm>
 #include <fmt/core.h>
-#include "LocalSearch.hpp"
+#include "local_search.hpp"
 #include "ArcRoute.hpp"
 #include "ModelRT.hpp"
 #include "best.hpp"
@@ -73,8 +74,8 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 						toIndexVector.push_back(toIndex);
 						// de-comment if you want to add all these routes (as before...)
 						// auto r1 = split_route_at_depot(inst, new_route1);
-						// new_routes.insert(new_routes.end(), r1.begin(), r1.end());
-						prevNewRouteCost = new_route1.cost;
+						// // new_routes.insert(new_routes.end(), r1.begin(), r1.end());
+						// prevNewRouteCost = new_route1.cost;
 					}
 				}
 
@@ -89,12 +90,17 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 						auto new_route1 = removes(inst, fromIndex, toIndex, route);
 						auto r1 = split_route_at_depot(inst, new_route1);
 						new_routes.insert(new_routes.end(), r1.begin(), r1.end());
+
+						int saving = route.cost - new_route1.cost;
 						///////////////////////////////////////////////////////////////////////////////////
 
 						auto end_it = route.full_path.begin() + toIndex + 1; // +1 per includere to_index
 						std::vector<std::pair<int, int>> vecLinks;
 						std::copy(route.full_path.begin() + fromIndex, end_it, std::back_inserter(vecLinks));
-
+						int segment_cost = 0;
+						for (auto& [u, v] : vecLinks) {
+							segment_cost += inst.trav_cost(u, v);
+						}
 						for(int tt = 0; tt < inst.horizon; ++tt){
 							if(t != tt){
 								int indexRoute = 0;
@@ -127,7 +133,7 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 									}
 									indexRoute++;
 								}
-								if(bestIndexRoute > -1){
+								if(bestIndexRoute > -1 && saving > bestDiffCost - segment_cost){
 									auto new_route2 = inserts(inst, vecLinks, best_sol.best_routes[tt][bestIndexRoute]);
 									auto r2 = split_route_at_depot(inst, new_route2);
 									new_routes.insert(new_routes.end(), r2.begin(), r2.end());
@@ -158,28 +164,32 @@ std::pair<double, int> local_search(GRBEnv& env, Instance& inst, Args const& arg
 	int iter = 1;
 	int best_iter = 0;
 	double best_time = 0;
-	while (iter - best_iter <= iterlimit) {
+	double residual_time = timelimit;
+	while (iter - best_iter <= iterlimit /*&& residual_time > 0.0*/) {
 
 		timer.start("local");
 		
 		auto new_routes = generate_new_routes(inst, curr_best, rand_gen);
 		fmt::print("New route generated\n");
-		RTModel rt_model{env, inst, args, new_routes};
+		RTModel rt_model{env, inst, new_routes, std::max(0.0, residual_time), args.threads};
 		
 		timer.stop("local");
 		runtime += timer.duration("local");
 
 		curr_rt_res = rt_model.optimize(inst, new_routes);
 		gurobi_time += curr_rt_res.runtime;
+		
+		residual_time = residual_time - runtime - curr_rt_res.runtime;
+
 		curr_best = BestSolution(inst, new_routes, curr_rt_res);
 
 		fmt::print("curr_iter={}, curr_best={}\n", iter, best_cost);
 
 		if(curr_best.cost < best_cost){
 			timer.stop("iter");
+			best_time = timer.duration("iter");
 			best_cost = curr_best.cost;
 			best_iter = iter;
-			best_time = timer.duration("iter");
 		}
 		iter++;
 	}

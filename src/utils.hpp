@@ -3,7 +3,7 @@
 #include "ArcRoute.hpp"
 #include "Instance.hpp"
 #include "mdarray.hpp"
-#include "LocalSearch.hpp"
+#include "local_search.hpp"
 #include <limits>
 #include <iostream>
 #include <random>
