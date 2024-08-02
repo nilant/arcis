@@ -15,7 +15,6 @@ struct RTResult {
     double runtime{0};
 
     RTResult(Instance const& inst, mdarray<GRBVar, 2> const& y, mdarray<GRBVar, 2> const& x, std::vector<ArcRoute> const& routes, int obj, double time);
-	RTResult(Instance const& inst, mdarray<GRBVar, 2> const& y, mdarray<GRBVar, 2> const& x, std::vector<ArcRoute> const& routes, int obj, double time, bool uno);
 };
 
 struct RTModel {
@@ -27,6 +26,6 @@ struct RTModel {
 
     Timer timer{};
 
-    RTModel(GRBEnv& env, Instance const& inst, Args const& args, std::vector<ArcRoute> const& routes);
+    RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const& routes, double timelimit, int threads);
     RTResult optimize(Instance const& inst, std::vector<ArcRoute> const& routes);
 };

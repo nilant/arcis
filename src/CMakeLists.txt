@@ -9,7 +9,7 @@ add_executable(arcis main.cpp
                      ModelRT.cpp 
                      RouteSolver.cpp
                      Preprocessing.cpp
-                     LocalSearch.cpp
+                     local_search.cpp
                      bounds.cpp
                 ../libs/vidal/Genetic.cpp
                 ../libs/vidal/Population.cpp
@@ -38,7 +38,7 @@ add_executable(test_route main2.cpp
                      ModelRT.cpp 
                      RouteSolver.cpp
                      Preprocessing.cpp
-                     LocalSearch.cpp
+                     local_search.cpp
                      bounds.cpp
                 ../libs/vidal/Genetic.cpp
                 ../libs/vidal/Population.cpp

@@ -3,7 +3,7 @@
 
 #include "Heuristic.hpp"
 #include "ArcRoute.hpp"
-#include "LocalSearch.hpp"
+#include "local_search.hpp"
 #include "ModelRT.hpp"
 #include "Result.hpp"
 #include "RouteSolver.hpp"
@@ -52,7 +52,7 @@ Result run(Instance& inst, Args const& args, GRBEnv& env, RandomGenerator& rand_
 	fmt::print("vidal_cost={}\nVIDAL END!\n", vidal_cost);
 // -------------------------------------------------------- //
 
-	RTModel rt_model{env, inst, args, all_routes};	
+	RTModel rt_model{env, inst, all_routes, args.timelimit, args.threads};	
 	RTResult rt_res = rt_model.optimize(inst, all_routes);
 
 	double gurobi_time = rt_res.runtime;
@@ -98,7 +98,7 @@ void update_total_result(Result& total_res, Result& res, Timer& timer) {
 		total_res.vidal_obj = res.vidal_obj;
 		total_res.rt_obj = res.rt_obj;
 		total_res.best_restart = res.restart;
-		total_res.best_iter_ls = total_res.ls_iter + res.best_iter_ls;
+		total_res.best_iter_ls = res.best_iter_ls;
 
 		timer.stop("best_time_ls");
 		total_res.best_time_ls = timer.duration("best_time_ls");

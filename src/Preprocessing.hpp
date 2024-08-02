@@ -1,9 +1,8 @@
 #pragma once
 #include <gurobi_c++.h>
 #include "Instance.hpp"
-#include "LocalSearch.hpp"
+#include "local_search.hpp"
 #include <set>
-#include <random>
 
 struct CarpInstance{
 	CarpInstance();
