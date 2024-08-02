@@ -60,7 +60,7 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 				if(!inst.required(fromU, fromV))
 					continue;
 
-				std::vector<int> toIndexVector;
+				// std::vector<int> toIndexVector;
 				int prevNewRouteCost = route.cost;
 				for(int toIndex = fromIndex; toIndex < route.full_path.size(); toIndex++){
 					int toU = route.full_path[fromIndex].first;
@@ -70,15 +70,15 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 
 					auto new_route1 = removes(inst, fromIndex, toIndex, route);
 					if(new_route1.cost < prevNewRouteCost && !new_route1.full_path.empty()){
-						toIndexVector.push_back(toIndex);
+						// toIndexVector.push_back(toIndex);
 						// de-comment if you want to add all these routes (as before...)
-						// auto r1 = split_route_at_depot(inst, new_route1);
-						// new_routes.insert(new_routes.end(), r1.begin(), r1.end());
+						auto r1 = split_route_at_depot(inst, new_route1);
+						new_routes.insert(new_routes.end(), r1.begin(), r1.end());
 						prevNewRouteCost = new_route1.cost;
 					}
 				}
 
-				if(!toIndexVector.empty()){
+				/*if(!toIndexVector.empty()){
 					// std::shuffle(toIndexVector.begin(), toIndexVector.end(), rand_gen.gen);
 					int size = (int) toIndexVector.size();
 					int maxTo = ceil(size*0.5);
@@ -135,7 +135,7 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 							}
 						}
 					}
-				}
+				}*/
 			}
 		}
 	}
