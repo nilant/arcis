@@ -43,6 +43,7 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const&
     try {
         model.set(GRB_StringAttr_ModelName, "RTModel");                                                                         
 		model.set(GRB_DoubleParam_TimeLimit, timelimit);
+		model.set(GRB_IntParam_Threads, threads);
 
 		// y's variables
 		for(int r = 0; r < routes.size(); ++r){
@@ -92,7 +93,7 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const&
 			}
 		}
 
-		// //(8)
+		// //(8) 
 		// for (int t = 0; t < inst.horizon; ++t) {
 		//     GRBLinExpr expr{0};
 		//     for (int r = 0; r < routes.size(); ++r) {
@@ -116,7 +117,6 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const&
 		//     model.addConstr(expr1 <= inst.quantity * expr2, fmt::format("9_{}", t));
 		// }
 
-		model.set(GRB_IntParam_Threads, threads);
 		model.update();
 
 	}catch(GRBException& e){
@@ -128,7 +128,7 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const&
 
 RTResult RTModel::optimize(Instance const& inst, std::vector<ArcRoute> const& routes){
 
-	int cost;
+	int cost{-1};
 	try{
 
 		timer.start("gurobi");
@@ -142,7 +142,7 @@ RTResult RTModel::optimize(Instance const& inst, std::vector<ArcRoute> const& ro
 			throw std::runtime_error("No feasible solution found");
 		}
 
-		if(status == GRB_OPTIMAL || status == GRB_SUBOPTIMAL){
+		else { 
 			cost = std::lrint(model.get(GRB_DoubleAttr_ObjVal));
 		}
 

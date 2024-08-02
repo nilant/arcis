@@ -82,7 +82,7 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 				if(!toIndexVector.empty()){
 					// std::shuffle(toIndexVector.begin(), toIndexVector.end(), rand_gen.gen);
 					int size = (int) toIndexVector.size();
-					int maxTo = ceil(size*0.9);
+					int maxTo = ceil(size*1);
 					for(int index = 0; index < maxTo; index++){
 						int toIndex = toIndexVector[index];
 
