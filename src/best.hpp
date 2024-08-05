@@ -12,5 +12,6 @@ struct BestSolution {
 
     std::vector<std::vector<ArcRoute>> best_routes;
 
+    BestSolution() = default;
     BestSolution(Instance const& inst, std::vector<ArcRoute> const& routes, RTResult const& rt_res);
 };

@@ -1,3 +1,5 @@
+#include <fmt/core.h>
+
 #include "RouteSolver.hpp"
 #include "../libs/vidal/Genetic.h"
 #include "ArcRoute.hpp"
@@ -67,4 +69,36 @@ std::vector<ArcRoute> RouteSolver::solve_routes(Instance const& inst, int t, Car
 	RouteSolver::call_time += _runtime / 1000;
 
     return routes;
+}
+
+VidalResult solve_route_vidal(Instance const& inst, std::map<int, CarpInstance> const& carp_map, double timelimit, int vidal_iterlimit) {
+
+	Timer timer{};
+	timer.start("vidal");
+
+	std::vector<ArcRoute> all_routes;
+	all_routes.reserve(inst.horizon * inst.nvehicles);
+
+	double vidal_cost{0.0};
+	for (auto& [k, carp_inst] : carp_map) {
+		if(!carp_inst.link_to_visit.empty()){
+
+		auto solver = RouteSolver{};
+		auto routes = solver.solve_routes(inst, k, carp_inst, static_cast<int>(timelimit*0.1), vidal_iterlimit);
+		all_routes.insert(all_routes.end(), routes.begin(), routes.end());
+
+			for(auto const& route: routes){
+				vidal_cost += route.cost;
+			}
+		}
+	}
+
+	int nroutes = (int) all_routes.size();
+
+	for (auto& route : all_routes) {
+		route.mipStart = true;
+	}
+	timer.stop("vidal");
+
+	return VidalResult{.all_routes = all_routes, .cost = vidal_cost, .time = timer.duration("vidal")};
 }

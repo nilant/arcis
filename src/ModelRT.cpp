@@ -5,9 +5,10 @@
 #include "mdarray.hpp"
 
 #include <fmt/core.h>
+#include <stdexcept>
 
 RTResult::RTResult(Instance const& inst, mdarray<GRBVar, 2> const& y, mdarray<GRBVar, 2> const& x,
-                   std::vector<ArcRoute> const& routes, int obj, double time) : y_val{y.dimension(0), y.dimension(1)},
+                   std::vector<ArcRoute> const& routes, int obj, double runtime) : y_val{y.dimension(0), y.dimension(1)},
                                                                                 x_val{x.dimension(0), x.dimension(1)}{
 
 	try {																			
@@ -32,7 +33,7 @@ RTResult::RTResult(Instance const& inst, mdarray<GRBVar, 2> const& y, mdarray<GR
 		std::exit(1);
 	}
 	cost = obj;
-	runtime = time;
+	time = runtime;
 }
 
 
@@ -135,15 +136,18 @@ RTResult RTModel::optimize(Instance const& inst, std::vector<ArcRoute> const& ro
 		model.optimize();
 		timer.stop("gurobi");
 
+		int nsol = model.get(GRB_IntAttr_SolCount);
 		int status = model.get(GRB_IntAttr_Status);
+
 		if(status == GRB_INFEASIBLE){
 			model.computeIIS();
 			model.write("model.ilp");
-			throw std::runtime_error("No feasible solution found");
+			throw std::runtime_error("No feasible solution found\n");
 		}
-
-		else { 
+		else if (nsol > 0) { 
 			cost = std::lrint(model.get(GRB_DoubleAttr_ObjVal));
+		} else {
+			throw std::runtime_error("No solution found\n");
 		}
 
 	}catch(GRBException& e){

@@ -24,7 +24,7 @@ struct RandomGenerator {
 	}
 };
 
-std::pair<double, int> local_search(GRBEnv& env, Instance& inst, Args const& args, RandomGenerator& rand_gen, BestSolution& curr_best, RTResult& rt_res, int timelimit, int iterlimit, double& gurobi_time);
+std::pair<double, int> local_search(GRBEnv& env, Instance& inst, RandomGenerator& rand_gen, BestSolution& curr_best, RTResult& rt_res, double timelimit, int iterlimit, int threads, double& gurobi_time);
 
 std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& best_sol);
 
