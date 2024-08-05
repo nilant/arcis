@@ -180,7 +180,7 @@ std::pair<double, int> local_search(GRBEnv& env, Instance& inst, RandomGenerator
 
 		curr_rt_res = rt_model.optimize(inst, new_routes);
 		gurobi_time += curr_rt_res.time;
-		fmt::print("gurobi time={}", curr_rt_res.time);
+		fmt::print("gurobi time={}\n", curr_rt_res.time);
 
 		curr_best = BestSolution(inst, new_routes, curr_rt_res);
 		
