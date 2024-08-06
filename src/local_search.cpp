@@ -82,7 +82,7 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 				if(!toIndexVector.empty()){
 					// std::shuffle(toIndexVector.begin(), toIndexVector.end(), rand_gen.gen);
 					int size = (int) toIndexVector.size();
-					int maxTo = ceil(size*1);
+					int maxTo = ceil(size*0.5);
 					for(int index = 0; index < maxTo; index++){
 						int toIndex = toIndexVector[index];
 
@@ -148,8 +148,8 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 	return new_routes;
 }
 
-std::pair<double, int> local_search(GRBEnv& env, Instance& inst, Args const& args, RandomGenerator& rand_gen, BestSolution& curr_best, RTResult& curr_rt_res,
-                  int timelimit, int iterlimit, double& gurobi_time){
+std::pair<double, int> local_search(GRBEnv& env, Instance& inst, RandomGenerator& rand_gen, BestSolution& curr_best, RTResult& curr_rt_res,
+                  double timelimit, int iterlimit, int threads, double& gurobi_time){
 
 	Timer timer{};
 	timer.start("iter");
@@ -164,29 +164,26 @@ std::pair<double, int> local_search(GRBEnv& env, Instance& inst, Args const& arg
 	int best_iter = 0;
 	double best_time = 0;
 	double residual_time = timelimit;
-	while (iter - best_iter <= iterlimit) {
+	while (iter - best_iter <= iterlimit && residual_time > 0.5) {
 
 		timer.start("local");
 		
 		auto new_routes = generate_new_routes(inst, curr_best, rand_gen);
 
-		fmt::print("New route generated\n");
+		fmt::print("{} new routes generated. residual_time={}\n", new_routes.size(), residual_time);
 
-		if (residual_time > 0.0) {
-			RTModel rt_model{env, inst, new_routes, residual_time, args.threads};
+		RTModel rt_model{env, inst, new_routes, residual_time, threads};
 
-			timer.stop("local");
-			runtime += timer.duration("local");
+		timer.stop("local");
+		runtime += timer.duration("local");
 
-			curr_rt_res = rt_model.optimize(inst, new_routes);
-			gurobi_time += curr_rt_res.runtime;
-		}
-		
-		residual_time = residual_time - runtime - curr_rt_res.runtime;
+		curr_rt_res = rt_model.optimize(inst, new_routes);
+		gurobi_time += curr_rt_res.time;
+		fmt::print("gurobi time={}\n", curr_rt_res.time);
 
 		curr_best = BestSolution(inst, new_routes, curr_rt_res);
-
-		fmt::print("curr_iter={}, curr_best={}\n", iter, best_cost);
+		
+		residual_time = residual_time - runtime - curr_rt_res.time;
 
 		if(curr_best.cost < best_cost){
 			timer.stop("iter");
@@ -194,13 +191,13 @@ std::pair<double, int> local_search(GRBEnv& env, Instance& inst, Args const& arg
 			best_cost = curr_best.cost;
 			best_iter = iter;
 		}
+
+		fmt::print("curr_iter={}, curr_best={}\n", iter, best_cost);
 		iter++;
 	}
 
 	curr_best.iter = best_iter;
 	curr_best.time = best_time;
-
-	fmt::print("best_iter={}, best_cost={}\n", best_iter, best_cost);
 
 	timer.stop("local");
 	return {runtime, iter};

@@ -12,8 +12,9 @@ struct RTResult {
     mdarray<int, 2> y_val;
     mdarray<int, 2> x_val;
     int cost{std::numeric_limits<int>::max()};
-    double runtime{0};
+    double time{0};
 
+    RTResult() = default;
     RTResult(Instance const& inst, mdarray<GRBVar, 2> const& y, mdarray<GRBVar, 2> const& x, std::vector<ArcRoute> const& routes, int obj, double time);
 };
 

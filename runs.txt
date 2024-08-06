@@ -1,0 +1,2 @@
+all_20240802-1 50% segmenti, inserimento solo se migliorano costo totale
+all_20240805 50% segmenti, inserimento solo se migliorano costo totale, accumulo rotte vidal
