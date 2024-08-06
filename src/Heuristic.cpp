@@ -67,7 +67,7 @@ Result heur(Instance& inst, Args const& args) {
 
 			fmt::print("starting local search...\n");
 			auto best = BestSolution(inst, all_routes, rt_res);
-			auto [ls_time, ls_iter] = local_search(env, inst, rand_gen, best, rt_res, residual_timelimit, 1, args.threads, total_result.gurobi_time);
+			auto [ls_time, ls_iter] = local_search(env, inst, rand_gen, best, rt_res, std::max(5.0, residual_timelimit), 1, args.threads, total_result.gurobi_time);
 
 			residual_timelimit -= ls_time;
 			total_result.ls_iter += ls_iter;
