@@ -90,7 +90,6 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 						auto new_route1 = removes(inst, fromIndex, toIndex, route);
 						auto r1 = split_route_at_depot(inst, new_route1);
 						new_routes.insert(new_routes.end(), r1.begin(), r1.end());
-
 						int saving = route.cost - new_route1.cost;
 						///////////////////////////////////////////////////////////////////////////////////
 
