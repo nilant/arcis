@@ -84,9 +84,8 @@ VidalResult solve_route_vidal(Instance const& inst, std::map<int, CarpInstance> 
 		if(!carp_inst.link_to_visit.empty()){
 
 			int n_link_to_visit = (int) carp_inst.link_to_visit.size();
-			double instance_time_limit = ((double) n_link_to_visit/inst.tot_services)*timelimit;
 			auto solver = RouteSolver{};
-			auto routes = solver.solve_routes(inst, k, carp_inst, static_cast<int>(instance_time_limit - 1), vidal_iterlimit);
+      		auto routes = solver.solve_routes(inst, k, carp_inst, static_cast<int>(n_link_to_visit - 1), vidal_iterlimit);
 			all_routes.insert(all_routes.end(), routes.begin(), routes.end());
 
 			for(auto const& route: routes){

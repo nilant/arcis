@@ -50,14 +50,16 @@ Result heur(Instance& inst, Args const& args) {
 
 		auto vidal_res = solve_route_vidal(inst, prepro.carpMap, residual_timelimit, args.vidal_iterlimit);
 		total_result.vidal_time += vidal_res.time;
+		residual_timelimit -= vidal_res.time;
+
 		all_routes.insert(all_routes.end(), vidal_res.all_routes.begin(), vidal_res.all_routes.end());
 
-		RTModel rt_model{env, inst, all_routes, residual_timelimit, args.threads};	
+		RTModel rt_model{env, inst, all_routes, std::max(10.0, residual_timelimit), args.threads};	
 		auto rt_res = rt_model.optimize(inst, all_routes);
 		double rt_start_cost = rt_res.cost;
 		total_result.gurobi_time += rt_res.time;
 
-		residual_timelimit = residual_timelimit - vidal_res.time - rt_res.time;
+		residual_timelimit -= rt_res.time;
 
 		fmt::print("rt_start_cost={}, gurobi_time={}\n", rt_start_cost, rt_res.time);
 
@@ -67,11 +69,14 @@ Result heur(Instance& inst, Args const& args) {
 
 			fmt::print("starting local search...\n");
 			auto best = BestSolution(inst, all_routes, rt_res);
-			auto [ls_time, ls_iter] = local_search(env, inst, rand_gen, best, rt_res, std::max(5.0, residual_timelimit), 1, args.threads, total_result.gurobi_time);
+			if (residual_timelimit > 5.0) {
 
-			residual_timelimit -= ls_time;
-			total_result.ls_iter += ls_iter;
-			total_result.ls_time += ls_time;
+				auto [ls_time, ls_iter] = local_search(env, inst, rand_gen, best, rt_res, residual_timelimit, 1, args.threads, total_result.gurobi_time);
+				residual_timelimit -= ls_time;
+				total_result.ls_iter += ls_iter;
+				total_result.ls_time += ls_time;
+			}
+
 
 			if (best.cost < best_cost) {
 				best_cost = best.cost;
