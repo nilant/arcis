@@ -37,14 +37,15 @@ RTResult::RTResult(Instance const& inst, mdarray<GRBVar, 2> const& y, mdarray<GR
 }
 
 
-RTModel::RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const& routes, double timelimit, int threads) : model{env}, 
+RTModel::RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const& routes) : model{env},
                                                                                            x{inst.nreq_links, inst.horizon},
                                                                                            y{routes.size(), inst.horizon} {
     
     try {
         model.set(GRB_StringAttr_ModelName, "RTModel");                                                                         
-		model.set(GRB_DoubleParam_TimeLimit, timelimit);
-		model.set(GRB_IntParam_Threads, threads);
+		model.set(GRB_DoubleParam_TimeLimit, 3600);
+		model.set(GRB_IntParam_Threads, 1);
+
 
 		// y's variables
 		for(int r = 0; r < routes.size(); ++r){
@@ -67,7 +68,7 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const&
 			}
 		}
 
-		GRBLinExpr expr{0};
+	    GRBLinExpr expr{0};
 		//(6)
 		for(int l = 0; l < inst.nreq_links; ++l){
 			for(int s = 0; s < inst.nsubperiods; ++s){
@@ -127,10 +128,34 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const&
 	}
 }
 
-RTResult RTModel::optimize(Instance const& inst, std::vector<ArcRoute> const& routes){
+RTResult RTModel::optimize(Instance const& inst, std::vector<ArcRoute> const& routes, bool second){
 
 	int cost{-1};
 	try{
+
+		/*if(second){
+			GRBLinExpr expr{0};
+			// aux variables
+			std::vector<GRBVar> aux(inst.horizon);
+			for(int t = 0; t < inst.horizon; ++t){
+				aux[t] = model.addVar(0, 1, 0, GRB_BINARY, fmt::format("aux_{}", t));
+				expr += aux[t];
+			}
+			model.setObjectiveN(expr, 1, 0);
+			expr.clear();
+			// aux constraint
+			for(int t = 0; t < inst.horizon; ++t){
+				int count = 0;
+				for(int r = 0; r < routes.size(); ++r){
+					if(t == routes[r].period || routes[r].mipStart){
+						expr += y(r, t);
+						count++;
+					}
+				}
+				model.addConstr(count*aux[t] >= expr, fmt::format("auxCon_{}", t));
+				expr.clear();
+			}
+		}*/
 
 		timer.start("gurobi");
 		model.optimize();
@@ -144,8 +169,18 @@ RTResult RTModel::optimize(Instance const& inst, std::vector<ArcRoute> const& ro
 			model.write("model.ilp");
 			throw std::runtime_error("No feasible solution found\n");
 		}
-		else if (nsol > 0) { 
+		else if (nsol > 0) {
 			cost = std::lrint(model.get(GRB_DoubleAttr_ObjVal));
+			/*if(second){
+				for(int s = 0; s < nsol; s++){
+					model.set(GRB_IntParam_SolutionNumber, s);
+					model.set(GRB_IntParam_ObjNumber, 0);
+					double obj1 = model.get(GRB_DoubleAttr_ObjNVal);
+					model.set(GRB_IntParam_ObjNumber, 1);
+					double obj2 = model.get(GRB_DoubleAttr_ObjNVal);
+					fmt::print("Solution {} First Obj {} Second Obj {}\n", s, obj1, obj2);
+				}
+			}*/
 		} else {
 			throw std::runtime_error("No solution found\n");
 		}

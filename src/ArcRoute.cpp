@@ -36,7 +36,6 @@ std::vector<ArcRoute> split_route_at_depot(Instance const& inst, ArcRoute const&
 
 ArcRoute::ArcRoute(Instance const& inst, ArcRoute const& other, int start, int end) : _links{inst.nlinks}{
 	cost = 0;
-	vehicle = other.vehicle;
 	period = other.period;
 
 	std::copy(other.full_path.begin() + start, other.full_path.begin() + (end + 1), std::back_inserter(full_path));
@@ -48,7 +47,7 @@ ArcRoute::ArcRoute(Instance const& inst, ArcRoute const& other, int start, int e
 	}
 }
 
-ArcRoute::ArcRoute(Instance const& inst, std::vector<std::pair<int, int>> const& route, int veh, int t)
+ArcRoute::ArcRoute(Instance const& inst, std::vector<std::pair<int, int>> const& route, int t)
 		: _links{inst.nlinks}{
 
 	period = t;
@@ -57,7 +56,6 @@ ArcRoute::ArcRoute(Instance const& inst, std::vector<std::pair<int, int>> const&
 		links(l) = false;
 	}
 
-	vehicle = veh;
 	cost = 0;
 	int prev_v = 0;
 	full_path.reserve(inst.nlinks);
@@ -79,6 +77,37 @@ ArcRoute::ArcRoute(Instance const& inst, std::vector<std::pair<int, int>> const&
 		}
 
 		prev_v = v;
+	}
+}
+
+ArcRoute::ArcRoute(Instance const& inst, std::vector<std::pair<int, int>> const& my_route, int t, bool dummy)
+		: _links{inst.nlinks}{
+
+	period = t;
+	for(int l = 0; l < _links.dimension(0); ++l){
+		links(l) = false;
+	}
+	cost = 0;
+	int firstV = my_route[0].first;
+	auto before_path = build_path(inst.prev, 0, firstV);
+	for(auto const& [i, j]: before_path){
+		full_path.emplace_back(i, j);
+		cost += inst.trav_cost(i, j);
+		links(inst.id(i, j)) = true;
+	}
+	for(const auto & link : my_route){
+		int u = link.first;
+		int v = link.second;
+		full_path.emplace_back(u, v);
+		cost += inst.trav_cost(u, v);
+		links(inst.id(u, v)) = true;
+	}
+	int lastU = my_route.back().second;
+	auto after_path = build_path(inst.prev, lastU, 0);
+	for(auto const& [i, j]: after_path){
+		full_path.emplace_back(i, j);
+		cost += inst.trav_cost(i, j);
+		links(inst.id(i, j)) = true;
 	}
 }
 

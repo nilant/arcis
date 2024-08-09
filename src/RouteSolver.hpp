@@ -20,4 +20,4 @@ struct VidalResult {
     const int nroutes() const { return all_routes.size();}
 };
 
-VidalResult solve_route_vidal(Instance const& inst, std::map<int, CarpInstance> const& carp_map, double timelimit, int vidal_iterlimit);
+VidalResult solve_route_vidal(Instance const& inst, std::map<int, CarpInstance> const& carp_map, int vidal_iterlimit);

@@ -12,11 +12,6 @@ struct RandomGenerator {
 	// Costruttore
 	RandomGenerator() : gen(0), distrib01(0.0, 1.0), distribInt(0.0, std::numeric_limits<int>::max()) {}
 
-	// Metodo per generare un numero casuale
-	double rand_0_1() {
-		return distrib01(gen);
-	}
-
 	// Metodo per generare un numero casuale tra 0 e max
 	int getRandomInt(int max) {
 		int output = distribInt(gen) % (max+1);
@@ -24,7 +19,7 @@ struct RandomGenerator {
 	}
 };
 
-std::pair<double, int> local_search(GRBEnv& env, Instance& inst, RandomGenerator& rand_gen, BestSolution& curr_best, RTResult& rt_res, double timelimit, int iterlimit, int threads, double& gurobi_time);
+std::pair<double, int> local_search(GRBEnv& env, Instance& inst, BestSolution& curr_best, RTResult& rt_res, double& gurobi_time, double& vidal_time);
 
 std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& best_sol);
 

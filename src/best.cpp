@@ -17,8 +17,18 @@ BestSolution::BestSolution(Instance const& inst, std::vector<ArcRoute> const& ro
                 best.push_back(routes[r]);
             }
         }
-
 		//if(!best.empty())
 		best_routes.push_back(best);
     }
+
+	req_link_visited.resize(inst.horizon);
+	for(int l = 0; l < inst.nreq_links; ++l){
+		for(int t = 0; t < inst.horizon; ++t){
+			if (rt_res.x_val(l, t)) {
+				req_link_visited[t].push_back(l);
+			}
+		}
+	}
+
+
 }

@@ -42,9 +42,7 @@ void Preprocessing::run(const Instance& inst, RandomGenerator& rand_gen){
 	for(int i = 0; i < link_id.size(); ++i){
 		link_id[i] = i;
 	}
-
 	std::shuffle(link_id.begin(), link_id.end(), rand_gen.gen);
-
 	for(int t = 0; t < inst.horizon; t++)
 		carpMap[t] = CarpInstance(1);
 

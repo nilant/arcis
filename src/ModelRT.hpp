@@ -27,6 +27,6 @@ struct RTModel {
 
     Timer timer{};
 
-    RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const& routes, double timelimit, int threads);
-    RTResult optimize(Instance const& inst, std::vector<ArcRoute> const& routes);
+    RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const& routes);
+    RTResult optimize(Instance const& inst, std::vector<ArcRoute> const& routes, bool second);
 };

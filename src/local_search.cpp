@@ -1,12 +1,12 @@
 #include <limits>
 #include <vector>
-#include <algorithm>
 #include <fmt/core.h>
 #include "local_search.hpp"
 #include "ArcRoute.hpp"
 #include "ModelRT.hpp"
 #include "best.hpp"
-#include "utils.hpp"
+#include "Preprocessing.hpp"
+#include "RouteSolver.hpp"
 
 ArcRoute inserts(Instance const& inst, std::vector<std::pair<int, int>> vecLinks, ArcRoute const& route){
 
@@ -45,98 +45,54 @@ ArcRoute removes(Instance const& inst, int fromLink, int toLink, ArcRoute const&
 	return new_route;
 }
 
-std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& best_sol, RandomGenerator& rand_gen){
+std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& best_sol){
 
 	std::vector<ArcRoute> new_routes;
-	rand_floyd_warshall(inst.trav_cost, inst.dist, inst.prev, rand_gen, inst.required);
-
 	for(int t = 0; t < inst.horizon; ++t){
 		for(auto& route: best_sol.best_routes[t]){
 			new_routes.push_back(route);
 			new_routes.back().mipStart = true;
 			new_routes.back().period = t;
-			for(int fromIndex = 0; fromIndex < route.full_path.size(); fromIndex++){
-				int fromU = route.full_path[fromIndex].first;
-				int fromV = route.full_path[fromIndex].second;
-				if(!inst.required(fromU, fromV))
-					continue;
 
+			for(int fromIndex = 0; fromIndex < route.full_path.size(); fromIndex++){
 				std::vector<int> toIndexVector;
 				int prevNewRouteCost = route.cost;
+				int toIndexSize = 0;
 				for(int toIndex = fromIndex; toIndex < route.full_path.size(); toIndex++){
-					int toU = route.full_path[fromIndex].first;
-					int toV = route.full_path[fromIndex].second;
-					if(!inst.required(toU, toV))
-						continue;
-
 					auto new_route1 = removes(inst, fromIndex, toIndex, route);
 					if(new_route1.cost < prevNewRouteCost && !new_route1.full_path.empty()){
 						toIndexVector.push_back(toIndex);
-						// de-comment if you want to add all these routes (as before...)
-						// auto r1 = split_route_at_depot(inst, new_route1);
-						// // new_routes.insert(new_routes.end(), r1.begin(), r1.end());
-						// prevNewRouteCost = new_route1.cost;
-					}
-				}
-
-				if(!toIndexVector.empty()){
-					// std::shuffle(toIndexVector.begin(), toIndexVector.end(), rand_gen.gen);
-					int size = (int) toIndexVector.size();
-					int maxTo = ceil(size*0.5);
-					for(int index = 0; index < maxTo; index++){
-						int toIndex = toIndexVector[index];
-
-						///////////////////////////////////////////////////////////////////////////////////
-						auto new_route1 = removes(inst, fromIndex, toIndex, route);
+						toIndexSize++;
 						auto r1 = split_route_at_depot(inst, new_route1);
 						new_routes.insert(new_routes.end(), r1.begin(), r1.end());
-						int saving = route.cost - new_route1.cost;
-						///////////////////////////////////////////////////////////////////////////////////
+						prevNewRouteCost = new_route1.cost;
+					}
+					if(toIndexSize >= 10)
+						break;
+				}
 
-						auto end_it = route.full_path.begin() + toIndex + 1; // +1 per includere to_index
-						std::vector<std::pair<int, int>> vecLinks;
-						std::copy(route.full_path.begin() + fromIndex, end_it, std::back_inserter(vecLinks));
-						int segment_cost = 0;
-						for (auto& [u, v] : vecLinks) {
-							segment_cost += inst.trav_cost(u, v);
-						}
-						for(int tt = 0; tt < inst.horizon; ++tt){
-							if(t != tt){
-								int indexRoute = 0;
-								int bestIndexRoute = -1;
-								int bestDiffCost = INF;
-								for(auto const& second_route: best_sol.best_routes[tt]){
-									bool checkIfContainOrNotRequired = true;
-									for(auto l: vecLinks){
-										bool doNotContain = !second_route.contains(inst.id(l.first, l.second));
-										bool isRequired = inst.t_l_matrix(tt, inst.id(l.first, l.second)) > 0;
-										if(isRequired && doNotContain){
-											checkIfContainOrNotRequired = false;
-											break;
-										}
-									}
-									if(checkIfContainOrNotRequired){
-										indexRoute++;
-										continue;
-									}
-									auto new_route2 = inserts(inst, vecLinks, second_route);
-									if(new_route2.cost - second_route.cost < bestDiffCost){
-										bestDiffCost = new_route2.cost - second_route.cost;
-										bestIndexRoute = indexRoute;
-									}else if(new_route2.cost - second_route.cost == bestDiffCost){
-										int coin = (int) round(rand_gen.rand_0_1());
-										if(coin){
-											bestDiffCost = new_route2.cost - second_route.cost;
-											bestIndexRoute = indexRoute;
-										}
-									}
-									indexRoute++;
+				for(int toIndex : toIndexVector){
+					auto end_it = route.full_path.begin() + toIndex + 1; // +1 per includere to_index
+					std::vector<std::pair<int, int>> vecLinks;
+					std::copy(route.full_path.begin() + fromIndex, end_it, std::back_inserter(vecLinks));
+					for(int tt = 0; tt < inst.horizon; ++tt){
+						if(t != tt){
+							int indexRoute = 0;
+							int bestIndexRoute = -1;
+							int bestDiffCost = std::numeric_limits<int>::max();
+
+							for(auto const& second_route: best_sol.best_routes[tt]){
+								auto new_route2 = inserts(inst, vecLinks, second_route);
+								if(new_route2.cost - second_route.cost < bestDiffCost){
+									bestDiffCost = new_route2.cost - second_route.cost;
+									bestIndexRoute = indexRoute;
 								}
-								if(bestIndexRoute > -1 && saving > bestDiffCost - segment_cost){
-									auto new_route2 = inserts(inst, vecLinks, best_sol.best_routes[tt][bestIndexRoute]);
-									auto r2 = split_route_at_depot(inst, new_route2);
-									new_routes.insert(new_routes.end(), r2.begin(), r2.end());
-								}
+								indexRoute++;
+							}
+							if(bestIndexRoute > -1){
+								auto new_route2 = inserts(inst, vecLinks, best_sol.best_routes[tt][bestIndexRoute]);
+								auto r2 = split_route_at_depot(inst, new_route2);
+								new_routes.insert(new_routes.end(), r2.begin(), r2.end());
 							}
 						}
 					}
@@ -148,57 +104,70 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& be
 	return new_routes;
 }
 
-std::pair<double, int> local_search(GRBEnv& env, Instance& inst, RandomGenerator& rand_gen, BestSolution& curr_best, RTResult& curr_rt_res,
-                  double timelimit, int iterlimit, int threads, double& gurobi_time){
+std::pair<double, int>
+local_search(GRBEnv& env, Instance& inst, BestSolution& curr_best, RTResult& curr_rt_res, double& gurobi_time, double& vidal_time){
 
 	Timer timer{};
-	timer.start("iter");
 
-	fmt::print("iterlimit={}, timelimit={}\n", iterlimit, timelimit);
 
-	double runtime = 0;
-	int best_cost = curr_best.cost;
-	int prev_cost = std::numeric_limits<int>::max();
+	double iter_ls_time = 0;
+	double best_cost = curr_best.cost;
 
 	int iter = 1;
 	int best_iter = 0;
 	double best_time = 0;
-	double residual_time = timelimit;
-	while (iter - best_iter <= iterlimit && residual_time > 0.5) {
+	double last_vidal_cost = curr_best.cost;
+	while(iter - best_iter <= 1){
 
 		timer.start("local");
-		
-		auto new_routes = generate_new_routes(inst, curr_best, rand_gen);
-
-		fmt::print("{} new routes generated. residual_time={}\n", new_routes.size(), residual_time);
-
-		RTModel rt_model{env, inst, new_routes, residual_time, threads};
-
+		auto new_routes = generate_new_routes(inst, curr_best);
+		fmt::print("{} new routes generated. \n", new_routes.size());
+		RTModel rt_model{env, inst, new_routes};
 		timer.stop("local");
-		runtime += timer.duration("local");
-
-		curr_rt_res = rt_model.optimize(inst, new_routes);
+		iter_ls_time += timer.duration("local");
+		curr_rt_res = rt_model.optimize(inst, new_routes, false);
 		gurobi_time += curr_rt_res.time;
 		fmt::print("gurobi time={}\n", curr_rt_res.time);
 
 		curr_best = BestSolution(inst, new_routes, curr_rt_res);
-		
-		residual_time = residual_time - runtime - curr_rt_res.time;
+
+
 
 		if(curr_best.cost < best_cost){
-			timer.stop("iter");
-			best_time = timer.duration("iter");
 			best_cost = curr_best.cost;
 			best_iter = iter;
 		}
 
 		fmt::print("curr_iter={}, curr_best={}\n", iter, best_cost);
+
 		iter++;
+		if(iter - best_iter > 1 && best_cost < last_vidal_cost){
+			std::map<int, CarpInstance> lastCarpMap;
+			for(int t = 0; t < inst.horizon; t++)
+				lastCarpMap[t] = CarpInstance(1);
+
+			for(int t = 0; t < inst.horizon; ++t)
+				for(auto& l: curr_best.req_link_visited[t])
+					lastCarpMap[t].link_to_visit.insert(l);
+
+			auto last_vidal_res = solve_route_vidal(inst, lastCarpMap, 1000);
+			vidal_time += last_vidal_res.time;
+			std::vector<ArcRoute> last_routes;
+			last_routes.insert(last_routes.end(), last_vidal_res.all_routes.begin(), last_vidal_res.all_routes.end());
+			RTModel last_rt_model{env, inst, last_routes};
+			auto last_rt_res = last_rt_model.optimize(inst, last_routes, false);
+			// total_result.gurobi_time += last_rt_res.time;
+			curr_best = BestSolution(inst, last_routes, last_rt_res);
+			last_vidal_cost = curr_best.cost;
+			if(curr_best.cost < best_cost){
+				best_cost = curr_best.cost;
+				best_iter = iter;
+			}
+
+			fmt::print("curr_best_after_vidal={}\n", best_cost);
+		}
 	}
-
 	curr_best.iter = best_iter;
-	curr_best.time = best_time;
 
-	timer.stop("local");
-	return {runtime, iter};
+	return {iter_ls_time, iter};
 }

@@ -48,7 +48,7 @@ std::vector<ArcRoute> RouteSolver::solve_routes(Instance const& inst, int t, Car
 	auto sol = population->BestSolution();
 
 	for (int veh = 0; veh < sol.second.size(); ++veh) {
-		ArcRoute route{inst, sol.second[veh], veh, t};
+		ArcRoute route{inst, sol.second[veh], t};
 		auto splitted_routes = split_route_at_depot(inst, route);
 		int cost_splitted = 0;
 		int nserv = 0;
@@ -71,7 +71,7 @@ std::vector<ArcRoute> RouteSolver::solve_routes(Instance const& inst, int t, Car
     return routes;
 }
 
-VidalResult solve_route_vidal(Instance const& inst, std::map<int, CarpInstance> const& carp_map, double timelimit, int vidal_iterlimit) {
+VidalResult solve_route_vidal(Instance const& inst, std::map<int, CarpInstance> const& carp_map, int vidal_iterlimit) {
 
 	Timer timer{};
 	timer.start("vidal");
@@ -86,6 +86,7 @@ VidalResult solve_route_vidal(Instance const& inst, std::map<int, CarpInstance> 
 			int n_link_to_visit = (int) carp_inst.link_to_visit.size();
 			auto solver = RouteSolver{};
       		auto routes = solver.solve_routes(inst, k, carp_inst, static_cast<int>(n_link_to_visit - 1), vidal_iterlimit);
+			// auto routes = solver.solve_routes(inst, k, carp_inst, 3600, 10000);
 			all_routes.insert(all_routes.end(), routes.begin(), routes.end());
 
 			for(auto const& route: routes){
