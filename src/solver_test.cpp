@@ -78,7 +78,8 @@ ParsedFile parsefile(std::string input) {
 
 CarpInstance create_carp_instance(Instance const& inst, std::vector<std::pair<int, int>>& links) {
 
-    CarpInstance carp{inst.nvehicles};
+    // CarpInstance carp{inst.nvehicles};
+	CarpInstance carp{};
 
     for (auto const& link : links) {
         int u = link.first;

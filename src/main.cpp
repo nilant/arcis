@@ -17,8 +17,9 @@ int main(int argc, char* argv[]) {
     }
 
     Instance inst = read_json(args.input_file);
+	inst.generateRandomDemand();
 
-	args.timelimit = inst.tot_services;
+	// args.timelimit = inst.tot_services;
     
     fmt::print("\nOptimizing {} with timelimit={}, vidal_iterlimit={}, ls_iterlimit={}, memlimit={}, threads={}, seed={}...\n", 
                 inst.name, args.timelimit, args.vidal_iterlimit, args.ls_iterlimit, args.memlimit, args.threads, args.seed);

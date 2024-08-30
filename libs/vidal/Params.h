@@ -115,7 +115,7 @@ public:
 	// sum of customers x visit frequency (multi-period problems)
 	int nbTotalServices ;
 
-	// sum of demand quantity of the customers
+	// sum of demand capacity of the customers
 	double totalDemand ;
 
 	// number of days
@@ -219,7 +219,7 @@ public:
 	// constructor
 	Params(string nomInstance, string nomSolution, string nomBKS, int seedRNG, int type, int nbVeh, int nbDep, bool isSearchingFeasible);
 
-	Params(int seedRNG, Instance const& inst, int veh, std::vector<bool> const& required);
+	Params(int seedRNG, Instance const& inst, int veh, std::vector<bool> const& required, bool multi);
 
 	// destructor
 	~Params(void);

@@ -14,8 +14,7 @@
 #include "timer.hpp"
 
 
-
-Result heur(Instance& inst, Args const& args) {
+Result heur(Instance& inst, Args const& args){
 
 // -------------------------------------------------------- //
 	Timer timer{};
@@ -26,11 +25,11 @@ Result heur(Instance& inst, Args const& args) {
 
 	GRBEnv env{};
 
-	#ifdef NDEBUG
-		env.set(GRB_IntParam_OutputFlag, 0);
-	#else
-		env.set(GRB_IntParam_OutputFlag, 1);
-	#endif
+#ifdef NDEBUG
+	env.set(GRB_IntParam_OutputFlag, 0);
+#else
+	env.set(GRB_IntParam_OutputFlag, 1);
+#endif
 
 	Result total_result;
 	total_result.name = "arcis";
@@ -41,17 +40,17 @@ Result heur(Instance& inst, Args const& args) {
 	int restart = 0;
 	double best_cost = std::numeric_limits<double>::max();
 	// double best_vidal_cost = std::numeric_limits<double>::max();
-	double last_vidal_time = 0;
+
 	double total_time = 0;
-	while (/*args.timelimit - total_time > last_vidal_time &&*/ restart - total_result.best_restart < 20) {
+	while(total_time < args.timelimit && restart - total_result.best_restart < 20){
 		fmt::print("restart after {} seconds.\n", total_time);
-		
+
 		Preprocessing prepro(inst);
 		prepro.run(inst, rand_gen);
 
-		auto vidal_res = solve_route_vidal(inst, prepro.carpMap, args.vidal_iterlimit);
+		auto vidal_res = solve_route_vidal(inst, prepro.carpMap, args.vidal_iterlimit, args.multi);
+		// auto vidal_res = solve_route_fast(inst, prepro.carpMap);
 		total_result.vidal_time += vidal_res.time;
-		last_vidal_time = vidal_res.time;
 
 		all_routes.insert(all_routes.end(), vidal_res.all_routes.begin(), vidal_res.all_routes.end());
 
@@ -66,13 +65,14 @@ Result heur(Instance& inst, Args const& args) {
 		fmt::print("starting local search...\n");
 		auto best = BestSolution(inst, all_routes, rt_res);
 		// if (residual_timelimit > 1.0) {
-			auto [ls_time, ls_iter] = local_search(env, inst, best, rt_res, total_result.gurobi_time, total_result.vidal_time);
-			total_result.ls_iter += ls_iter;
-			total_result.ls_time += ls_time;
+		auto [ls_time, ls_iter] = local_search(env, inst, best, rt_res, total_result.gurobi_time,
+		                                       total_result.vidal_time, args.multi);
+		total_result.ls_iter += ls_iter;
+		total_result.ls_time += ls_time;
 		// }
 
-		if (best.cost < best_cost) {
-			timer.start("best_time_ls");
+		if(best.cost < best_cost){
+			timer.stop("best_time_ls");
 			best_cost = best.cost;
 			total_result.vidal_obj = vidal_res.cost;
 			total_result.rt_obj = rt_start_cost;

@@ -12,6 +12,7 @@ struct Args {
     int threads;
     int seed;
     double timelimit;
+	bool multi;
 
     Args(int argc, char* argv[]);
 };

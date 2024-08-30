@@ -21,8 +21,8 @@ struct Instance {
     int nnot_req_links;
     int nlinks;
     int nsubperiods;
-    int nvehicles;
-    int quantity;
+    // int nvehicles;
+    int capacity;
     
     std::vector<std::pair<int, int>> links;
     mdarray<int, 2> required; 
@@ -41,6 +41,8 @@ struct Instance {
 
     mdarray<int, 2> dist;
     mdarray<int, 2> prev;
+
+	void generateRandomDemand();
 
     explicit Instance(int nvertices, int nreq_links, int nsubperiods, int horizon, int nlinks);
 };

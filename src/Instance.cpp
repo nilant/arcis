@@ -59,8 +59,8 @@ Instance read_json(fs::path input_path) {
     inst.nlinks = nlinks;
 
     //FIXIT
-    inst.nvehicles = 1;
-    inst.quantity = inst.nlinks;
+    // inst.nvehicles = 1;
+    inst.capacity = -1; // inst.nlinks;
 
     for (int s = 0; s < inst.nsubperiods; ++s) {
         for (int const t : subperiods[s]) {
@@ -132,4 +132,24 @@ Instance read_json(fs::path input_path) {
 
     floyd_warshall(inst.trav_cost, inst.dist, inst.prev);
     return inst;
+}
+
+void Instance::generateRandomDemand(){
+
+	RandomGenerator rand_gen{};
+	int tot_dem = 0;
+	for (auto const& [u, v] : links) {
+		int rand_d = rand_gen.getRandomInt(99) + 1;
+		auto t = type(u,v);
+		if (t == EDGE)
+			demand(v, u) = rand_d;
+		demand(u, v) = rand_d;
+
+		int link_id = id(u, v);
+		for (int s = 0; s < nsubperiods; ++s) {
+			tot_dem += rand_d * frequencies(link_id, s);
+		}
+	}
+
+	capacity = tot_dem/(horizon);
 }

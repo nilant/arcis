@@ -5,11 +5,12 @@
 #include <set>
 
 struct CarpInstance{
-	CarpInstance();
-	std::set<int> link_to_visit;
-	int nVehicle;
+	CarpInstance()= default;
 
-	explicit CarpInstance(int v_nVehicle);
+	std::set<int> link_to_visit;
+	// int nVehicle;
+
+	// explicit CarpInstance(int v_nVehicle);
 };
 
 struct Preprocessing {

@@ -303,7 +303,7 @@ void Params::preleveDonnees (string nomInstance)
 	}
 }
 
-Params::Params(int seedRNG, Instance const& inst, int veh, std::vector<bool> const& required) 
+Params::Params(int seedRNG, Instance const& inst, int veh, std::vector<bool> const& required, bool multi)
 {
 	type = 31;
 	nbVehiculesPerDep = veh;
@@ -374,15 +374,17 @@ Params::Params(int seedRNG, Instance const& inst, int veh, std::vector<bool> con
 
 	// Main method to read a problem instance
 	vector <Vehicle> tempI ;
-	double vc ;
 	nbTotalServices = 0 ;
 	totalDemand = 0 ;
 	multiDepot = false ;
 	periodique = false ;
 	isTurnPenalties = false ;
-	char * myChars = new char[100]; 
+	char * myChars = new char[100];
 
-	vc = 1000000 ;
+	double capacity = std::numeric_limits<double>::max();
+	if(multi)
+		capacity = inst.capacity;
+
 	ar_tempIndexDepot = 1 ;
 
 	ar_InitializeDistanceNodes();
@@ -408,8 +410,8 @@ Params::Params(int seedRNG, Instance const& inst, int veh, std::vector<bool> con
 		{
 			for (int j=0 ; j < nbVehiculesPerDep ; j++)
 			{
-				ordreVehicules[kk].push_back(Vehicle(i,1000000,vc)); // Duration constraint set to a high value
-				dayCapacity[kk] += vc ;
+				ordreVehicules[kk].emplace_back(i, std::numeric_limits<double>::max(), capacity); // Duration constraint set to a high value
+				dayCapacity[kk] += capacity ;
 			}
 		}
 	}
@@ -440,8 +442,11 @@ Params::Params(int seedRNG, Instance const& inst, int veh, std::vector<bool> con
 		ar_distanceNodes[cli[iCour].ar_nodesExtr0][cli[iCour].ar_nodesExtr1] = myTravelCost ;
 		ar_distanceNodes[cli[iCour].ar_nodesExtr1][cli[iCour].ar_nodesExtr0] = myTravelCost ;
 
-		cli[iCour].demand = 1;
-		totalDemand += cli[iCour].demand ;
+		if(multi)
+			cli[iCour].demand = inst.demand(u-1, v-1);
+		else
+			cli[iCour].demand = 1;
+		totalDemand += cli[iCour].demand;
 		cli[iCour].ar_serviceCost01 = inst.serv_cost(u-1, v-1) ;
 		cli[iCour].ar_serviceCost10 = inst.serv_cost(u-1, v-1) ;
 		iCour ++ ;
@@ -471,7 +476,11 @@ Params::Params(int seedRNG, Instance const& inst, int veh, std::vector<bool> con
 		myTravelCost = inst.trav_cost(u-1, v-1);
 		ar_distanceNodes[cli[iCour].ar_nodesExtr0][cli[iCour].ar_nodesExtr1] = myTravelCost ;
 
-		cli[iCour].demand = 1;
+		if(multi)
+			cli[iCour].demand = inst.demand(u-1, v-1);
+		else
+			cli[iCour].demand = 1;
+
 		totalDemand += cli[iCour].demand ;
 		cli[iCour].ar_serviceCost01 = inst.serv_cost(u-1, v-1);
 		cli[iCour].ar_serviceCost10 = 1.e20 ; // This is an arc

@@ -116,7 +116,7 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const&
 		//     for (int r = 0; r < routes.size(); ++r) {
 		//         expr2 += y(r, t);
 		//     }
-		//     model.addConstr(expr1 <= inst.quantity * expr2, fmt::format("9_{}", t));
+		//     model.addConstr(expr1 <= inst.capacity * expr2, fmt::format("9_{}", t));
 		// }
 
 		model.update();
