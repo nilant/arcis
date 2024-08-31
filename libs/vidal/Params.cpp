@@ -381,9 +381,9 @@ Params::Params(int seedRNG, Instance const& inst, int veh, std::vector<bool> con
 	isTurnPenalties = false ;
 	char * myChars = new char[100];
 
-	double capacity = std::numeric_limits<double>::max();
+	double vc = 1000000;
 	if(multi)
-		capacity = inst.capacity;
+		vc = inst.capacity;
 
 	ar_tempIndexDepot = 1 ;
 
@@ -410,8 +410,8 @@ Params::Params(int seedRNG, Instance const& inst, int veh, std::vector<bool> con
 		{
 			for (int j=0 ; j < nbVehiculesPerDep ; j++)
 			{
-				ordreVehicules[kk].emplace_back(i, std::numeric_limits<double>::max(), capacity); // Duration constraint set to a high value
-				dayCapacity[kk] += capacity ;
+				ordreVehicules[kk].emplace_back(i, 1000000, vc); // Duration constraint set to a high value
+				dayCapacity[kk] += vc ;
 			}
 		}
 	}

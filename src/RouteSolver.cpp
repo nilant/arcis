@@ -50,7 +50,7 @@ std::vector<ArcRoute> RouteSolver::solve_routes(Instance const& inst, int t, Car
 	}
 
 	// initialisation of the Parameters
-	mesParametres = new Params(0, inst, nVeh_UB /*carp_inst.nVehicle*/, required, multi);
+	mesParametres = new Params(1, inst, nVeh_UB /*carp_inst.nVehicle*/, required, multi);
 
 	// Running the algorithm
 	population = new Population(mesParametres) ;

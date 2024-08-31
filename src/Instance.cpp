@@ -139,15 +139,18 @@ void Instance::generateRandomDemand(){
 	RandomGenerator rand_gen{};
 	int tot_dem = 0;
 	for (auto const& [u, v] : links) {
-		int rand_d = rand_gen.getRandomInt(99) + 1;
-		auto t = type(u,v);
-		if (t == EDGE)
-			demand(v, u) = rand_d;
-		demand(u, v) = rand_d;
+		if(required(u, v)){
+			int rand_d = rand_gen.getRandomInt(99) + 1;
+			auto t = type(u, v);
+			if(t == EDGE)
+				demand(v, u) = rand_d;
+			demand(u, v) = rand_d;
+			int link_id = id(u, v);
+			for(int s = 0; s < nsubperiods; ++s){
+				if(frequencies(link_id, s) > 0)
+					tot_dem += rand_d*frequencies(link_id, s);
+			}
 
-		int link_id = id(u, v);
-		for (int s = 0; s < nsubperiods; ++s) {
-			tot_dem += rand_d * frequencies(link_id, s);
 		}
 	}
 
