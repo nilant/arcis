@@ -140,7 +140,7 @@ void Instance::generateRandomDemand(){
 	int tot_dem = 0;
 	for (auto const& [u, v] : links) {
 		if(required(u, v)){
-			int rand_d = rand_gen.getRandomInt(99) + 1;
+			int rand_d = rand_gen.getRandomInt(999) + 1;
 			auto t = type(u, v);
 			if(t == EDGE)
 				demand(v, u) = rand_d;
@@ -153,6 +153,8 @@ void Instance::generateRandomDemand(){
 
 		}
 	}
+
+	std::cout << "tot_dem: " << tot_dem << std::endl;
 
 	capacity = tot_dem/(horizon);
 }

@@ -21,8 +21,8 @@ int main(int argc, char* argv[]) {
 
 	// args.timelimit = inst.tot_services;
     
-    fmt::print("\nOptimizing {} with timelimit={}, vidal_iterlimit={}, ls_iterlimit={}, memlimit={}, threads={}, seed={}...\n", 
-                inst.name, args.timelimit, args.vidal_iterlimit, args.ls_iterlimit, args.memlimit, args.threads, args.seed);
+    fmt::print("\nOptimizing {} with timelimit={}, vidal_iterlimit={}, ls_iterlimit={}, memlimit={}, threads={}, seed={}, multi={}\n",
+                inst.name, args.timelimit, args.vidal_iterlimit, args.ls_iterlimit, args.memlimit, args.threads, args.seed, args.multi);
 
     auto result = heur(inst, args);
     fmt::print("done\n\n");

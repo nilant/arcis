@@ -1,6 +1,7 @@
 #pragma once 
 
 #include <vector>
+#include <set>
 #include "Instance.hpp"
 #include "mdarray.hpp"
 #include "unordered_set"
@@ -13,6 +14,7 @@ struct ArcRoute {
 
     std::vector<std::pair<int, int>> full_path;
     mdarray<int, 1> _links;
+	std::set<int> visited_rlink;
 
     explicit ArcRoute(Instance const& inst, ArcRoute const& other, int start, int end);
     explicit ArcRoute(Instance const& inst, std::vector<std::pair<int,int>> const& vidal_route, int t);
@@ -23,7 +25,6 @@ struct ArcRoute {
     bool contains(int id) const;
     int& links(int id);
     int links(int id) const;
-    void compute_full_path(Instance const& inst);
     void check_cost(Instance const& inst) const;
 };
 

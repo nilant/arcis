@@ -7,8 +7,6 @@
 
 
 bool IsSubset(std::vector<int> const& A, std::vector<int> const& B){
-	// std::sort(A.begin(), A.end());
-	// std::sort(B.begin(), B.end());
 	return std::includes(A.begin(), A.end(), B.begin(), B.end());
 }
 
@@ -28,13 +26,7 @@ Preprocessing::Preprocessing(Instance const& inst){
 			elementarySP.insert(sp1);
 		}
 	}
-};
-
-// CarpInstance::CarpInstance(int v_nVehicle) : nVehicle(v_nVehicle){}
-
-/*CarpInstance::CarpInstance(){
-	nVehicle = -1;
-};*/
+}
 
 void Preprocessing::run(const Instance& inst, RandomGenerator& rand_gen){
 
@@ -44,7 +36,7 @@ void Preprocessing::run(const Instance& inst, RandomGenerator& rand_gen){
 	}
 	std::shuffle(link_id.begin(), link_id.end(), rand_gen.gen);
 	for(int t = 0; t < inst.horizon; t++)
-		carpMap[t] = CarpInstance(); // CarpInstance(1);
+		carpMap[t] = CarpInstance();
 
 	for(int sp = 0; sp < inst.nsubperiods; sp++){
 
@@ -77,6 +69,5 @@ void Preprocessing::run(const Instance& inst, RandomGenerator& rand_gen){
 			}
 		}
 	}
-
 }
 

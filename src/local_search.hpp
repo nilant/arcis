@@ -19,9 +19,9 @@ struct RandomGenerator {
 	}
 };
 
-std::pair<double, int> local_search(GRBEnv& env, Instance& inst, BestSolution& curr_best, RTResult& rt_res, double& gurobi_time, double& vidal_time, bool multi);
+std::pair<double, int> local_search(GRBEnv& env, Instance& inst, BestSolution& curr_best, RTResult& rt_res, double& gurobi_time, double& vidal_time, Args const& args);
 
-std::vector<ArcRoute> generate_new_routes(Instance& inst, BestSolution const& best_sol);
+std::vector<ArcRoute> generate_new_routes(Instance& inst, const BestSolution& best_sol, const bool multi);
 
 // try to insert path
 ArcRoute inserts(Instance const& inst, std::vector<std::pair<int, int>> vecLinks, ArcRoute const& route);

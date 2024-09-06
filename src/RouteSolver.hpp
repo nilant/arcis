@@ -22,4 +22,3 @@ struct VidalResult {
 };
 
 VidalResult solve_route_vidal(Instance const& inst, std::map<int, CarpInstance> const& carp_map, int vidal_iterlimit, bool multi);
-VidalResult solve_route_fast(Instance const& inst, std::map<int, CarpInstance> const& carp_map);

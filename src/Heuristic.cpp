@@ -39,10 +39,8 @@ Result heur(Instance& inst, Args const& args){
 
 	int restart = 0;
 	double best_cost = std::numeric_limits<double>::max();
-	// double best_vidal_cost = std::numeric_limits<double>::max();
-
 	double total_time = 0;
-	while(total_time < args.timelimit && restart - total_result.best_restart < 20){
+	while(total_time < args.timelimit && restart - total_result.best_restart < 50){
 		fmt::print("restart after {} seconds.\n", total_time);
 
 		Preprocessing prepro(inst);
@@ -54,22 +52,26 @@ Result heur(Instance& inst, Args const& args){
 
 		all_routes.insert(all_routes.end(), vidal_res.all_routes.begin(), vidal_res.all_routes.end());
 
-		RTModel rt_model{env, inst, all_routes};
-		auto rt_res = rt_model.optimize(inst, all_routes, false);
+		RTResult rt_res; // ((int) all_routes.size(), inst.horizon, inst.nreq_links, inst.horizon);
+		if(args.multi > 1){
+			mRTModel rt_model{env, inst, all_routes};
+			rt_res = rt_model.optimize(all_routes);
+		}
+		else{
+			RTModel rt_model{env, inst, all_routes, args.multi};
+			rt_res = rt_model.optimize(all_routes, inst, args.multi);
+		}
 		double rt_start_cost = rt_res.cost;
 		total_result.gurobi_time += rt_res.time;
 		fmt::print("vidal_cost={}, rt_start_cost={}, gurobi_time={}\n", vidal_res.cost, rt_start_cost, rt_res.time);
-
-		// if (rt_res.cost <= best_vidal_cost) {
-		// best_vidal_cost = rt_res.cost;
 		fmt::print("starting local search...\n");
+		std::cout << std::endl;
+
 		auto best = BestSolution(inst, all_routes, rt_res);
-		// if (residual_timelimit > 1.0) {
 		auto [ls_time, ls_iter] = local_search(env, inst, best, rt_res, total_result.gurobi_time,
-		                                       total_result.vidal_time, args.multi);
+		                                       total_result.vidal_time, args);
 		total_result.ls_iter += ls_iter;
 		total_result.ls_time += ls_time;
-		// }
 
 		if(best.cost < best_cost){
 			timer.stop("best_time_ls");
@@ -83,7 +85,6 @@ Result heur(Instance& inst, Args const& args){
 			total_result.best_restart = restart;
 		}
 		all_routes.clear();
-		// }
 
 		restart++;
 		timer.stop("total");

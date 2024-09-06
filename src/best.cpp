@@ -8,18 +8,13 @@ BestSolution::BestSolution(Instance const& inst, std::vector<ArcRoute> const& ro
                                     RTResult const& rt_res) {
 
     cost = rt_res.cost;
-    best_routes.reserve(rt_res.y_val.dimension(1));
-    for (int t = 0; t < rt_res.y_val.dimension(1); ++t) {
-        std::vector<ArcRoute> best;
-        best.reserve(rt_res.y_val.dimension(0));
-        for (int r = 0; r < rt_res.y_val.dimension(0); ++r) {
-            if (rt_res.y_val(r, t)) {
-                best.push_back(routes[r]);
-            }
-        }
-		//if(!best.empty())
-		best_routes.push_back(best);
-    }
+    best_routes.resize(rt_res.y_val.dimension(1));
+	for(int r = 0; r < rt_res.y_val.dimension(0); ++r){
+		int t = routes[r].period;
+		if (rt_res.y_val(r, t)) {
+			best_routes[t].push_back(routes[r]);
+		}
+	}
 
 	req_link_visited.resize(inst.horizon);
 	for(int l = 0; l < inst.nreq_links; ++l){
@@ -29,6 +24,4 @@ BestSolution::BestSolution(Instance const& inst, std::vector<ArcRoute> const& ro
 			}
 		}
 	}
-
-
 }

@@ -9,24 +9,37 @@
 
 
 struct RTResult {
-    mdarray<int, 2> y_val;
-    mdarray<int, 2> x_val;
+    mdarray<int, 2> y_val{0, 0};
+    mdarray<int, 2> x_val{0, 0};
     int cost{std::numeric_limits<int>::max()};
     double time{0};
 
+	// RTResult(int y_dim1, int y_dim2, int x_dim1, int x_dim2): y_val{y_dim1,y_dim2},x_val{x_dim1, x_dim2}{};
+
     RTResult() = default;
-    RTResult(Instance const& inst, mdarray<GRBVar, 2> const& y, mdarray<GRBVar, 2> const& x, std::vector<ArcRoute> const& routes, int obj, double time);
+    RTResult(mdarray<GRBVar, 2> const& y, mdarray<GRBVar, 2> const& x, std::vector<ArcRoute> const& routes, int obj, double time);
+	RTResult(mdarray<GRBVar, 2> const& y, mdarray<GRBVar, 3> const& x, std::vector<ArcRoute> const& routes, int obj, double time);
 };
 
 struct RTModel {
 	GRBModel model;
-    // indices are l, t (l = link, t = period). 1 iff link l is served in period t 
-    mdarray<GRBVar, 2> x;
     // indices are r, t (r = route, t = period). 1 iff route r is used in period t 
     mdarray<GRBVar, 2> y;
-
+	// indices are l, t (l = link, t = period). 1 iff link l is served in period t
+	mdarray<GRBVar, 2> x;
     Timer timer{};
 
-    RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const& routes);
-    RTResult optimize(Instance const& inst, std::vector<ArcRoute> const& routes, bool second);
+    RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const& routes, int multi);
+    RTResult optimize(std::vector<ArcRoute> const& routes, Instance const& inst, int multi);
+	bool check_feasibility(std::vector<ArcRoute> const& routes, Instance const& inst);
+};
+
+struct mRTModel {
+	GRBModel model;
+	mdarray<GRBVar, 2> y;
+	mdarray<GRBVar, 3> x;
+	Timer timer{};
+
+	mRTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const& routes);
+	RTResult optimize(std::vector<ArcRoute> const& routes);
 };

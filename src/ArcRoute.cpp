@@ -42,6 +42,7 @@ ArcRoute::ArcRoute(Instance const& inst, ArcRoute const& other, int start, int e
 	for(auto const [i, j]: full_path){
 		if(inst.required(i,j)){
 			links(inst.id(i, j)) = true;
+			visited_rlink.insert(inst.id(i, j));
 		}
 		cost += inst.trav_cost(i, j);
 	}
@@ -68,12 +69,18 @@ ArcRoute::ArcRoute(Instance const& inst, std::vector<std::pair<int, int>> const&
 		for(auto const& [i, j]: path){
 			full_path.push_back({i, j});
 			cost += inst.trav_cost(i, j);
-			links(inst.id(i, j)) = true;
+			if(inst.required(i,j)){
+				links(inst.id(i, j)) = true;
+				visited_rlink.insert(inst.id(i, j));
+			}
 		}
 		if(u != 0 || v != 0){
 			full_path.push_back({u, v});
 			cost += inst.trav_cost(u, v);
-			links(inst.id(u, v)) = true;
+			if(inst.required(u, v)){
+				links(inst.id(u, v)) = true;
+				visited_rlink.insert(inst.id(u, v));
+			}
 		}
 
 		prev_v = v;
@@ -93,21 +100,30 @@ ArcRoute::ArcRoute(Instance const& inst, std::vector<std::pair<int, int>> const&
 	for(auto const& [i, j]: before_path){
 		full_path.emplace_back(i, j);
 		cost += inst.trav_cost(i, j);
-		links(inst.id(i, j)) = true;
+		if(inst.required(i,j)){
+			links(inst.id(i, j)) = true;
+			visited_rlink.insert(inst.id(i, j));
+		}
 	}
 	for(const auto & link : my_route){
 		int u = link.first;
 		int v = link.second;
 		full_path.emplace_back(u, v);
 		cost += inst.trav_cost(u, v);
-		links(inst.id(u, v)) = true;
+		if(inst.required(u, v)){
+			links(inst.id(u, v)) = true;
+			visited_rlink.insert(inst.id(u, v));
+		}
 	}
 	int lastU = my_route.back().second;
 	auto after_path = build_path(inst.prev, lastU, 0);
 	for(auto const& [i, j]: after_path){
 		full_path.emplace_back(i, j);
 		cost += inst.trav_cost(i, j);
-		links(inst.id(i, j)) = true;
+		if(inst.required(i,j)){
+			links(inst.id(i, j)) = true;
+			visited_rlink.insert(inst.id(i, j));
+		}
 	}
 }
 
