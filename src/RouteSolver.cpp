@@ -5,7 +5,7 @@
 #include "ArcRoute.hpp"
 #include "Preprocessing.hpp"
 
-std::vector<ArcRoute> RouteSolver::solve_routes(Instance const& inst, int t, CarpInstance const& carp_inst, int timelimit, int iterlimit, bool multi) {
+std::vector<ArcRoute> solve_routes(Instance const& inst, int t, CarpInstance const& carp_inst, int timelimit, int iterlimit, bool multi) {
 
 	std::vector<ArcRoute> routes;
 
@@ -45,9 +45,25 @@ std::vector<ArcRoute> RouteSolver::solve_routes(Instance const& inst, int t, Car
 	
 	auto sol = population->BestSolution();
 
-	for (const auto & veh : sol.second) {
-		ArcRoute route{inst, veh, t};
+	for (const auto & vidal_links : sol.second) {
+		ArcRoute route{inst, vidal_links, t};
 		auto splitted_routes = split_route_at_depot(inst, route);
+		if(multi == 1){
+			int next = 1;
+			for(auto& r: splitted_routes){
+				std::fill(r._links.begin(), r._links.end(), false);
+				r.residual_capacity = inst.capacity;
+				for(auto l: r.full_path){
+					int id_next = inst.id(vidal_links[next].first - 1, vidal_links[next].second - 1);
+					int id_l = inst.id(l.first, l.second);
+					if(id_l == id_next){
+						r.links(id_l) = true;
+						r.residual_capacity -= inst.demand(l.first, l.second);
+						next++;
+					}
+				}
+			}
+		}
 		routes.insert(routes.end(), splitted_routes.begin(), splitted_routes.end());
 	}
 
@@ -66,8 +82,7 @@ VidalResult solve_route_vidal(Instance const& inst, std::map<int, CarpInstance> 
 		if(!carp_inst.link_to_visit.empty()){
 
 			int n_link_to_visit = (int) carp_inst.link_to_visit.size();
-			auto solver = RouteSolver{};
-      		auto routes = solver.solve_routes(inst, k, carp_inst, n_link_to_visit, vidal_iterlimit, multi);
+      		auto routes = solve_routes(inst, k, carp_inst, n_link_to_visit, vidal_iterlimit, multi);
 			all_routes.insert(all_routes.end(), routes.begin(), routes.end());
 			for(auto const& route: routes)
 				vidal_cost += route.cost;

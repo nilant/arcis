@@ -1,6 +1,6 @@
 #pragma once
 #include "ArcRoute.hpp"
-#include "ModelRT.hpp"
+#include "Model_RT.hpp"
 #include "best.hpp"
 
 struct RandomGenerator {
@@ -21,7 +21,7 @@ struct RandomGenerator {
 
 std::pair<double, int> local_search(GRBEnv& env, Instance& inst, BestSolution& curr_best, RTResult& rt_res, double& gurobi_time, double& vidal_time, Args const& args);
 
-std::vector<ArcRoute> generate_new_routes(Instance& inst, const BestSolution& best_sol, const bool multi);
+std::vector<ArcRoute> generate_new_routes(Instance& inst, const BestSolution& best_sol, int multi);
 
 // try to insert path
 ArcRoute inserts_all(Instance const& inst, std::vector<std::pair<int, int>> vecLinks, ArcRoute const& route);

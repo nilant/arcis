@@ -11,6 +11,7 @@ struct ArcRoute {
     int cost{0};
     int period{-1};
 	bool mipStart{false};
+	int residual_capacity{-1};
 
     std::vector<std::pair<int, int>> full_path;
     mdarray<int, 1> _links;

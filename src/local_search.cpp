@@ -3,7 +3,7 @@
 #include <fmt/core.h>
 #include "local_search.hpp"
 #include "ArcRoute.hpp"
-#include "ModelRT.hpp"
+#include "Model_RT.hpp"
 #include "best.hpp"
 #include "Preprocessing.hpp"
 #include "RouteSolver.hpp"
@@ -78,7 +78,7 @@ ArcRoute removes(Instance const& inst, int fromLink, int toLink, ArcRoute const&
 	return new_route;
 }
 
-std::vector<ArcRoute> generate_new_routes(Instance& inst, const BestSolution& best_sol, const bool multi){
+std::vector<ArcRoute> generate_new_routes(Instance& inst, const BestSolution& best_sol, int multi){
 
 	std::vector<ArcRoute> new_routes;
 	for(int t = 0; t < inst.horizon; ++t){
@@ -101,7 +101,7 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, const BestSolution& be
 						new_routes.insert(new_routes.end(), r1.begin(), r1.end());
 						prevNewRouteCost = new_route1.cost;
 					}
-					if((toIndexSize >= 2 && multi) || toIndexSize >= 10)
+					if((toIndexSize >= 2 && multi == 2) || toIndexSize >= 10)
 						break;
 				}
 
@@ -140,6 +140,29 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, const BestSolution& be
 			}
 		}
 	}
+
+	if(multi == 1){
+		RandomGenerator rand_gen{};
+		for(auto& r: new_routes){
+			if(!r.mipStart && r.residual_capacity < 0){
+				std::vector<int> rand_index(r.full_path.size());
+				for(int id = 0; id < r.full_path.size(); id++)
+					rand_index[id] = id;
+				std::shuffle(rand_index.begin(), rand_index.end(), rand_gen.gen);
+
+				for(auto l : rand_index){
+					int id_l = inst.id(r.full_path[l].first, r.full_path[l].second);
+					if(r.links(id_l)){
+						r.links(id_l) = false;
+						r.residual_capacity += inst.demand(r.full_path[l].first, r.full_path[l].second);
+					}
+					if(r.residual_capacity >= 0)
+						break;
+				}
+			}
+		}
+	}
+
 	return new_routes;
 }
 
@@ -215,10 +238,10 @@ local_search(GRBEnv& env, Instance& inst, BestSolution& curr_best, RTResult& cur
 			fmt::print("curr_best_after_vidal={}\n", best_cost);
 		}
 		///////////// should be ok, but must be tested! ///////////////////////
-		/*else if(best_cost == last_vidal_cost)
-			break;*/
+		else if(best_cost == last_vidal_cost)
+			break;
+		///////////////////////////////////////////////////////////////////////
 	}
 	curr_best.iter = best_iter;
-
 	return {iter_ls_time, iter};
 }
