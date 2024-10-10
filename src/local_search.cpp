@@ -154,7 +154,6 @@ local_search(GRBEnv& env, Instance& inst, BestSolution& curr_best, RTResult& cur
 
 	int iter = 1;
 	int best_iter = 0;
-	double best_time = 0;
 	double last_vidal_cost = curr_best.cost;
 	while(iter - best_iter <= 1){
 
@@ -215,6 +214,9 @@ local_search(GRBEnv& env, Instance& inst, BestSolution& curr_best, RTResult& cur
 			}
 			fmt::print("curr_best_after_vidal={}\n", best_cost);
 		}
+		///////////// should be ok, but must be tested! ///////////////////////
+		/*else if(best_cost == last_vidal_cost)
+			break;*/
 	}
 	curr_best.iter = best_iter;
 
