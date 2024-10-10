@@ -8,22 +8,18 @@
 #include "Preprocessing.hpp"
 #include "RouteSolver.hpp"
 
-ArcRoute inserts(Instance const& inst, std::vector<std::pair<int, int>> vecLinks, ArcRoute const& route){
+ArcRoute inserts_all(Instance const& inst, std::vector<std::pair<int, int>> vecLinks, ArcRoute const& route){
 
 	int firstU = vecLinks[0].first;
 	int lastV = vecLinks.back().second;
-	int l_cost = 0;
-	for(auto link: vecLinks)
-		l_cost += inst.trav_cost(link.first, link.second);
 
 	int insert_point = 0;
 	int best_insert_point = 0;
 	int best_cost = std::numeric_limits<int>::max();
-	int new_cost = best_cost;
 	int bestNode = -1;
 	for(auto l: route.full_path){
 		int node = l.first;
-		new_cost = inst.dist(node, firstU) + inst.dist(lastV, node);
+		int new_cost = inst.dist(node, firstU) + inst.dist(lastV, node);
 		if(new_cost < best_cost){
 			best_cost = new_cost;
 			best_insert_point = insert_point;
@@ -35,6 +31,43 @@ ArcRoute inserts(Instance const& inst, std::vector<std::pair<int, int>> vecLinks
 	ArcRoute new_route{route};
 	new_route.mipStart = false;
 	new_route.insert_links(inst, vecLinks, bestNode, best_insert_point);
+	return new_route;
+}
+
+ArcRoute inserts_oneAtime(Instance const& inst, std::vector<std::pair<int, int>> const& vecLinks, ArcRoute const& route){
+
+	ArcRoute new_route{route};
+	new_route.mipStart = false;
+	int t = route.period;
+	for(auto link : vecLinks){
+
+		auto link_id = inst.id(link.first, link.second);
+		if(inst.t_l_matrix(t, link_id) == 0)
+			continue;
+
+		int insert_point = 0;
+		int best_insert_point = 0;
+		int best_cost = std::numeric_limits<int>::max();
+		int bestNode = -1;
+
+		bool to_be_inserted = true;
+		for(auto l: new_route.full_path){
+			to_be_inserted = inst.id(l.first, l.second) != inst.id(link.first, link.second);
+			if(!to_be_inserted)
+				break;
+			int node = l.first;
+			int new_cost = inst.dist(node, link.first) + inst.dist(link.second, node);
+			if(new_cost < best_cost){
+				best_cost = new_cost;
+				best_insert_point = insert_point;
+				bestNode = node;
+			}
+			insert_point++;
+		}
+		if(to_be_inserted)
+			new_route.insert_links(inst, {link}, bestNode, best_insert_point);
+	}
+
 	return new_route;
 }
 
@@ -81,9 +114,9 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, const BestSolution& be
 							int indexRoute = 0;
 							int bestIndexRoute = -1;
 							int bestDiffCost = std::numeric_limits<int>::max();
-
 							for(auto const& second_route: best_sol.best_routes[tt]){
-								auto new_route2 = inserts(inst, vecLinks, second_route);
+								auto new_route2 = inserts_all(inst, vecLinks, second_route);
+								// auto new_route2 = inserts_oneAtime(inst, vecLinks, second_route);
 								if(new_route2.cost - second_route.cost < bestDiffCost){
 									bestDiffCost = new_route2.cost - second_route.cost;
 									bestIndexRoute = indexRoute;
@@ -91,7 +124,8 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, const BestSolution& be
 								indexRoute++;
 							}
 							if(bestIndexRoute > -1){
-								auto new_route2 = inserts(inst, vecLinks, best_sol.best_routes[tt][bestIndexRoute]);
+								auto new_route2 = inserts_all(inst, vecLinks, best_sol.best_routes[tt][bestIndexRoute]);
+								// auto new_route2 = inserts_oneAtime(inst, vecLinks, best_sol.best_routes[tt][bestIndexRoute]);
 								auto r2 = split_route_at_depot(inst, new_route2);
 								new_routes.insert(new_routes.end(), r2.begin(), r2.end());
 							}

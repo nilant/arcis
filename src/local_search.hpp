@@ -24,7 +24,7 @@ std::pair<double, int> local_search(GRBEnv& env, Instance& inst, BestSolution& c
 std::vector<ArcRoute> generate_new_routes(Instance& inst, const BestSolution& best_sol, const bool multi);
 
 // try to insert path
-ArcRoute inserts(Instance const& inst, std::vector<std::pair<int, int>> vecLinks, ArcRoute const& route);
+ArcRoute inserts_all(Instance const& inst, std::vector<std::pair<int, int>> vecLinks, ArcRoute const& route);
 
 // return a route
 ArcRoute removes(Instance const& inst, int fromLink, int toLink, ArcRoute const& route);

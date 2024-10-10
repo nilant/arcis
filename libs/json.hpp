@@ -22450,7 +22450,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
         return result;
     }
 
-    /// @brief inserts element into array
+    /// @brief inserts_all element into array
     /// @sa https://json.nlohmann.me/api/basic_json/insert/
     iterator insert(const_iterator pos, const basic_json& val)
     {
@@ -22470,14 +22470,14 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
         JSON_THROW(type_error::create(309, detail::concat("cannot use insert() with ", type_name()), this));
     }
 
-    /// @brief inserts element into array
+    /// @brief inserts_all element into array
     /// @sa https://json.nlohmann.me/api/basic_json/insert/
     iterator insert(const_iterator pos, basic_json&& val)
     {
         return insert(pos, val);
     }
 
-    /// @brief inserts copies of element into array
+    /// @brief inserts_all copies of element into array
     /// @sa https://json.nlohmann.me/api/basic_json/insert/
     iterator insert(const_iterator pos, size_type cnt, const basic_json& val)
     {
@@ -22497,7 +22497,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
         JSON_THROW(type_error::create(309, detail::concat("cannot use insert() with ", type_name()), this));
     }
 
-    /// @brief inserts range of elements into array
+    /// @brief inserts_all range of elements into array
     /// @sa https://json.nlohmann.me/api/basic_json/insert/
     iterator insert(const_iterator pos, const_iterator first, const_iterator last)
     {
@@ -22528,7 +22528,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
         return insert_iterator(pos, first.m_it.array_iterator, last.m_it.array_iterator);
     }
 
-    /// @brief inserts elements from initializer list into array
+    /// @brief inserts_all elements from initializer list into array
     /// @sa https://json.nlohmann.me/api/basic_json/insert/
     iterator insert(const_iterator pos, initializer_list_t ilist)
     {
@@ -22548,7 +22548,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
         return insert_iterator(pos, ilist.begin(), ilist.end());
     }
 
-    /// @brief inserts range of elements into object
+    /// @brief inserts_all range of elements into object
     /// @sa https://json.nlohmann.me/api/basic_json/insert/
     void insert(const_iterator first, const_iterator last)
     {
