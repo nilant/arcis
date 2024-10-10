@@ -15,7 +15,7 @@ struct CarpInstance{
 
 struct Preprocessing {
 
-	Preprocessing(Instance const& inst);
+	explicit Preprocessing(Instance const& inst);
 	std::map<int, CarpInstance> carpMap;
 	std::vector<std::set<int>> contains;
 	std::set<int> elementarySP;

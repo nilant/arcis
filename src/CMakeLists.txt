@@ -4,14 +4,12 @@ add_executable(arcis main.cpp
                      ArcRoute.cpp
                      Instance.cpp 
                      Result.cpp 
-                     Heuristic.cpp 
-                     ModelAux.cpp 
-                     ModelRT.cpp 
+                     Heuristic.cpp
+                     ModelRT.cpp
                      RouteSolver.cpp
                      Preprocessing.cpp
                      local_search.cpp
-                     bounds.cpp
-                ../libs/vidal/Genetic.cpp
+        ../libs/vidal/Genetic.cpp
                 ../libs/vidal/Population.cpp
                 ../libs/vidal/LocalSearch.cpp
                 ../libs/vidal/Noeud.cpp

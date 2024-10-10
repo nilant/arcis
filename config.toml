@@ -24,7 +24,7 @@ timelimit = 3600
 
 # iterlimit
 vidal_iterlimit = 1000
-ls_iterlimit = 1
+mls_iterlimit = 1
 
 # memlimit
 memlimit = 16

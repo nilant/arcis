@@ -5,22 +5,14 @@
 #include "ArcRoute.hpp"
 #include "Preprocessing.hpp"
 
-
-double RouteSolver::call_time = 0;
-
 std::vector<ArcRoute> RouteSolver::solve_routes(Instance const& inst, int t, CarpInstance const& carp_inst, int timelimit, int iterlimit, bool multi) {
-
-	auto t0 = std::chrono::high_resolution_clock::now();
 
 	std::vector<ArcRoute> routes;
 
-	std::vector<bool> required(inst.nreq_links);
+	std::vector<bool> required(inst.nreq_links, false);
 	for (auto l : carp_inst.link_to_visit) {
 		required[l] = true;
 	}
-
-	vector < Population * > populationTab ;
-	vector < Params * > mesParametresTab ;
 
 	Population * population ; 
 	Params * mesParametres ;
@@ -47,33 +39,19 @@ std::vector<ArcRoute> RouteSolver::solve_routes(Instance const& inst, int t, Car
 
 	// Running the algorithm
 	population = new Population(mesParametres) ;
-	Genetic solver(mesParametres,population,nb_ticks_allowed, false);
+	Genetic solver(mesParametres, population, nb_ticks_allowed, false);
 
 	solver.evolve(iterlimit, 1); // First parameter controls the number of iterations without improvement before termination
 	
 	auto sol = population->BestSolution();
 
-	for (int veh = 0; veh < sol.second.size(); ++veh) {
-		ArcRoute route{inst, sol.second[veh], t};
+	for (const auto & veh : sol.second) {
+		ArcRoute route{inst, veh, t};
 		auto splitted_routes = split_route_at_depot(inst, route);
-		int cost_splitted = 0;
-		int nserv = 0;
-		for (auto const& r : splitted_routes) {
-			cost_splitted += r.cost;
-			nserv += r.full_path.size();
-		}
-		assert(cost_splitted == sol.first[veh]);
-		assert(nserv == route.full_path.size());
 		routes.insert(routes.end(), splitted_routes.begin(), splitted_routes.end());
 	}
 
-	delete mesParametres ;
-
-	auto t1 = std::chrono::high_resolution_clock::now();
-	_runtime = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count(); 
-
-	RouteSolver::call_time += _runtime / 1000;
-
+	delete mesParametres;
     return routes;
 }
 
@@ -90,7 +68,6 @@ VidalResult solve_route_vidal(Instance const& inst, std::map<int, CarpInstance> 
 			int n_link_to_visit = (int) carp_inst.link_to_visit.size();
 			auto solver = RouteSolver{};
       		auto routes = solver.solve_routes(inst, k, carp_inst, n_link_to_visit, vidal_iterlimit, multi);
-			// auto routes = solver.solve_routes(inst, k, carp_inst, 3600, 10000);
 			all_routes.insert(all_routes.end(), routes.begin(), routes.end());
 			for(auto const& route: routes)
 				vidal_cost += route.cost;

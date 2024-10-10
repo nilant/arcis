@@ -10,7 +10,6 @@
 #include "RouteSolver.hpp"
 #include "best.hpp"
 #include "Preprocessing.hpp"
-#include "bounds.hpp"
 #include "timer.hpp"
 
 
@@ -40,14 +39,15 @@ Result heur(Instance& inst, Args const& args){
 	int restart = 0;
 	double best_cost = std::numeric_limits<double>::max();
 	double total_time = 0;
-	while(total_time < args.timelimit && restart - total_result.best_restart < 50){
+	while(total_time < args.timelimit && restart - total_result.best_restart < args.mls_iterlimit){
+		timer.start("iteration");
+
 		fmt::print("restart after {} seconds.\n", total_time);
 
 		Preprocessing prepro(inst);
 		prepro.run(inst, rand_gen);
 
 		auto vidal_res = solve_route_vidal(inst, prepro.carpMap, args.vidal_iterlimit, args.multi);
-		// auto vidal_res = solve_route_fast(inst, prepro.carpMap);
 		total_result.vidal_time += vidal_res.time;
 
 		all_routes.insert(all_routes.end(), vidal_res.all_routes.begin(), vidal_res.all_routes.end());
@@ -72,27 +72,30 @@ Result heur(Instance& inst, Args const& args){
 		                                       total_result.vidal_time, args);
 		total_result.ls_iter += ls_iter;
 		total_result.ls_time += ls_time;
+		all_routes.clear();
+		restart++;
+		timer.stop("iteration");
+		double it_duration = timer.duration("iteration");
+		if(it_duration > total_result.longest_it_time)
+			total_result.longest_it_time = it_duration;
 
 		if(best.cost < best_cost){
 			timer.stop("best_time_ls");
 			best_cost = best.cost;
 			total_result.vidal_obj = vidal_res.cost;
-			total_result.rt_obj = rt_start_cost;
+			total_result.start_obj = rt_start_cost;
 			total_result.ls_obj = best.cost;
 			total_result.best_time_ls = timer.duration("best_time_ls");
 			total_result.best_iter_ls = best.iter;
-			total_result.nroutes = all_routes.size();
+			total_result.best_it_time = it_duration;
 			total_result.best_restart = restart;
 		}
-		all_routes.clear();
 
-		restart++;
 		timer.stop("total");
 		total_time = timer.duration("total");
 	}
 
 	total_result.total_restart = restart;
-	total_result.lb = lower_bound(inst);
 
 // -------------------------------------------------------- //
 
