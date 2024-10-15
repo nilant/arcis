@@ -6,6 +6,7 @@
 
 #include "ArcRoute.hpp"
 #include "Instance.hpp"
+#include "local_search.hpp"
 
 
 std::vector<std::pair<int, int>> build_path(mdarray<int, 2> const& prev, int u, int v){
@@ -119,7 +120,6 @@ void ArcRoute::insert_links(Instance const& inst, std::vector<std::pair<int, int
 
 void ArcRoute::remove_links(Instance const& inst, int fromLink, int toLink){
 
-
 	int prev = full_path[fromLink].first;
 	int post = full_path[toLink].second;
 	for(int linkIndex = fromLink; linkIndex <= toLink; linkIndex++){
@@ -138,3 +138,22 @@ void ArcRoute::remove_links(Instance const& inst, int fromLink, int toLink){
 bool ArcRoute::contains(int id) const{
 	return links(id);
 }
+
+void ArcRoute::make_maximal(Instance const& inst)
+{
+	RandomGenerator rand_gen{};
+	std::vector<int> rand_index(full_path.size());
+	for(int id = 0; id < full_path.size(); id++)
+		rand_index[id] = id;
+	std::shuffle(rand_index.begin(), rand_index.end(), rand_gen.gen);
+
+	for(auto l : rand_index){
+		int id_l = inst.id(full_path[l].first, full_path[l].second);
+		if(!links(id_l) && residual_capacity - inst.demand(full_path[l].first, full_path[l].second) >= 0){
+			links(id_l) = true;
+			residual_capacity -= inst.demand(full_path[l].first, full_path[l].second);
+		}
+	}
+
+}
+

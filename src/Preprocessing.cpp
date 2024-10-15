@@ -35,8 +35,8 @@ void Preprocessing::run(const Instance& inst, RandomGenerator& rand_gen){
 		link_id[i] = i;
 	}
 	std::shuffle(link_id.begin(), link_id.end(), rand_gen.gen);
-	for(int t = 0; t < inst.horizon; t++)
-		carpMap[t] = CarpInstance();
+	// for(int t = 0; t < inst.horizon; t++)
+		// carpMap[t] = CarpInstance();
 
 	for(int sp = 0; sp < inst.nsubperiods; sp++){
 
@@ -51,7 +51,8 @@ void Preprocessing::run(const Instance& inst, RandomGenerator& rand_gen){
 			if(freq > 0){
 				std::vector<int> chooseT;
 				for(auto t: periods)
-					if(!carpMap[t].link_to_visit.empty() && !carpMap[t].link_to_visit.count(l))
+					// if(!carpMap[t].link_to_visit.empty() && !carpMap[t].link_to_visit.count(l))
+					if(!carpMap[t].empty() && !carpMap[t].count(l))
 						chooseT.push_back(t);
 				if(chooseT.size() > freq){
 					std::shuffle(chooseT.begin(), chooseT.end(), rand_gen.gen);
@@ -60,12 +61,14 @@ void Preprocessing::run(const Instance& inst, RandomGenerator& rand_gen){
 						int periods_max_index = (int) periods.size() - 1;
 						int rand_t = periods.at(rand_gen.getRandomInt(periods_max_index));
 						bool not_in_choosT = std::find(chooseT.begin(), chooseT.end(), rand_t) == chooseT.end();
-						if(!carpMap[rand_t].link_to_visit.count(l) && not_in_choosT)
+						// if(!carpMap[rand_t].link_to_visit.count(l) && not_in_choosT)
+						if(!carpMap[rand_t].count(l) && not_in_choosT)
 							chooseT.push_back(rand_t);
 					}
 				}
 				for(int f = 0; f < freq; f++)
-					carpMap[chooseT[f]].link_to_visit.insert(l);
+					// carpMap[chooseT[f]].link_to_visit.insert(l);
+					carpMap[chooseT[f]].insert(l);
 			}
 		}
 	}

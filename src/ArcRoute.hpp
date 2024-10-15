@@ -25,6 +25,7 @@ struct ArcRoute {
     bool contains(int id) const;
     int& links(int id);
     int links(int id) const;
+	void make_maximal(Instance const& inst);
 };
 
 std::vector<ArcRoute> split_route_at_depot(Instance const& inst, ArcRoute const& other);

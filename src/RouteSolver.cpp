@@ -5,12 +5,13 @@
 #include "ArcRoute.hpp"
 #include "Preprocessing.hpp"
 
-std::vector<ArcRoute> solve_routes(Instance const& inst, int t, CarpInstance const& carp_inst, int timelimit, int iterlimit, bool multi) {
+std::vector<ArcRoute> solve_routes(Instance const& inst, int t, /*CarpInstance const& carp_inst*/ std::set<int> const& link_to_visit, int timelimit, int iterlimit, bool multi) {
 
 	std::vector<ArcRoute> routes;
 
 	std::vector<bool> required(inst.nreq_links, false);
-	for (auto l : carp_inst.link_to_visit) {
+	// for (auto l : carp_inst.link_to_visit) {
+	for (auto l : link_to_visit) {
 		required[l] = true;
 	}
 
@@ -25,7 +26,8 @@ std::vector<ArcRoute> solve_routes(Instance const& inst, int t, CarpInstance con
 	int nVeh_UB = 1;
 	if(multi){
 		int residual_cap = inst.capacity;
-		for(auto link: carp_inst.link_to_visit){
+		// for(auto link: carp_inst.link_to_visit){
+		for (auto link : link_to_visit) {
 			if(inst.demand(inst.links[link].first, inst.links[link].second) > residual_cap){
 				nVeh_UB++;
 				residual_cap = inst.capacity;
@@ -62,6 +64,7 @@ std::vector<ArcRoute> solve_routes(Instance const& inst, int t, CarpInstance con
 						next++;
 					}
 				}
+				r.make_maximal(inst);
 			}
 		}
 		routes.insert(routes.end(), splitted_routes.begin(), splitted_routes.end());
@@ -71,7 +74,7 @@ std::vector<ArcRoute> solve_routes(Instance const& inst, int t, CarpInstance con
     return routes;
 }
 
-VidalResult solve_route_vidal(Instance const& inst, std::map<int, CarpInstance> const& carp_map, int vidal_iterlimit, bool multi) {
+VidalResult solve_route_vidal(Instance const& inst, std::map<int, /*CarpInstance*/std::set<int>> const& carp_map, int vidal_iterlimit, bool multi) {
 
 	Timer timer{};
 	timer.start("vidal");
@@ -79,9 +82,10 @@ VidalResult solve_route_vidal(Instance const& inst, std::map<int, CarpInstance> 
 	std::vector<ArcRoute> all_routes;
 	double vidal_cost{0.0};
 	for (auto& [k, carp_inst] : carp_map) {
-		if(!carp_inst.link_to_visit.empty()){
+		// if(!carp_inst.link_to_visit.empty()){
+		if(!carp_inst.empty()){
 
-			int n_link_to_visit = (int) carp_inst.link_to_visit.size();
+			int n_link_to_visit = (int) carp_inst.size(); // carp_inst.link_to_visit.size();
       		auto routes = solve_routes(inst, k, carp_inst, n_link_to_visit, vidal_iterlimit, multi);
 			all_routes.insert(all_routes.end(), routes.begin(), routes.end());
 			for(auto const& route: routes)

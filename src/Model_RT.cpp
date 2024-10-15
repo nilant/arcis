@@ -96,7 +96,7 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const&
 			}
 		}
 
-		if(multi){
+		/*if(multi){
 			for(int r = 0; r <routes.size(); r++){
 				int t = routes[r].period;
 				int bigM = 0;
@@ -137,7 +137,7 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const&
 				model.addConstr(vec_expr[t] <= 0, fmt::format("capacity_{}", t));
 				expr.clear();
 			}
-		}
+		}*/
 		// model.update();
 
 	}catch(GRBException& e){
@@ -149,7 +149,7 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const&
 
 bool RTModel::check_feasibility(std::vector<ArcRoute> const& routes, Instance const& inst){
 
-	std::vector<std::vector<std::pair<int, std::set<int>>>> link_choices(inst.horizon, std::vector<std::pair<int, std::set<int>>>(inst.nreq_links));
+	std::vector link_choices(inst.horizon, std::vector<std::pair<int, std::set<int>>>(inst.nreq_links));
 	std::map<int, int> residual_capacity;
 	for(int r = 0; r < routes.size(); ++r){
 		int t = routes[r].period;

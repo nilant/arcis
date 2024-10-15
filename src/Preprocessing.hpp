@@ -4,19 +4,20 @@
 #include "local_search.hpp"
 #include <set>
 
-struct CarpInstance{
+/*struct CarpInstance{
 	CarpInstance()= default;
 
 	std::set<int> link_to_visit;
 	// int nVehicle;
 
 	// explicit CarpInstance(int v_nVehicle);
-};
+};*/
 
 struct Preprocessing {
 
 	explicit Preprocessing(Instance const& inst);
-	std::map<int, CarpInstance> carpMap;
+	// std::map<int, CarpInstance> carpMap;
+	std::map<int, std::set<int>> carpMap;
 	std::vector<std::set<int>> contains;
 	std::set<int> elementarySP;
 	void run(Instance const& inst, RandomGenerator& rand_gen);

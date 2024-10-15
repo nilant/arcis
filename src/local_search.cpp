@@ -34,43 +34,6 @@ ArcRoute inserts_all(Instance const& inst, std::vector<std::pair<int, int>> vecL
 	return new_route;
 }
 
-ArcRoute inserts_oneAtime(Instance const& inst, std::vector<std::pair<int, int>> const& vecLinks, ArcRoute const& route){
-
-	ArcRoute new_route{route};
-	new_route.mipStart = false;
-	int t = route.period;
-	for(auto link : vecLinks){
-
-		auto link_id = inst.id(link.first, link.second);
-		if(inst.t_l_matrix(t, link_id) == 0)
-			continue;
-
-		int insert_point = 0;
-		int best_insert_point = 0;
-		int best_cost = std::numeric_limits<int>::max();
-		int bestNode = -1;
-
-		bool to_be_inserted = true;
-		for(auto l: new_route.full_path){
-			to_be_inserted = inst.id(l.first, l.second) != inst.id(link.first, link.second);
-			if(!to_be_inserted)
-				break;
-			int node = l.first;
-			int new_cost = inst.dist(node, link.first) + inst.dist(link.second, node);
-			if(new_cost < best_cost){
-				best_cost = new_cost;
-				best_insert_point = insert_point;
-				bestNode = node;
-			}
-			insert_point++;
-		}
-		if(to_be_inserted)
-			new_route.insert_links(inst, {link}, bestNode, best_insert_point);
-	}
-
-	return new_route;
-}
-
 ArcRoute removes(Instance const& inst, int fromLink, int toLink, ArcRoute const& route){
 	ArcRoute new_route{route};
 	new_route.mipStart = false;
@@ -116,7 +79,6 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, const BestSolution& be
 							int bestDiffCost = std::numeric_limits<int>::max();
 							for(auto const& second_route: best_sol.best_routes[tt]){
 								auto new_route2 = inserts_all(inst, vecLinks, second_route);
-								// auto new_route2 = inserts_oneAtime(inst, vecLinks, second_route);
 								if(new_route2.cost - second_route.cost < bestDiffCost){
 									bestDiffCost = new_route2.cost - second_route.cost;
 									bestIndexRoute = indexRoute;
@@ -125,7 +87,6 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, const BestSolution& be
 							}
 							if(bestIndexRoute > -1){
 								auto new_route2 = inserts_all(inst, vecLinks, best_sol.best_routes[tt][bestIndexRoute]);
-								// auto new_route2 = inserts_oneAtime(inst, vecLinks, best_sol.best_routes[tt][bestIndexRoute]);
 								auto r2 = split_route_at_depot(inst, new_route2);
 								new_routes.insert(new_routes.end(), r2.begin(), r2.end());
 							}
@@ -159,6 +120,7 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, const BestSolution& be
 					if(r.residual_capacity >= 0)
 						break;
 				}
+				r.make_maximal(inst);
 			}
 		}
 	}
@@ -208,13 +170,14 @@ local_search(GRBEnv& env, Instance& inst, BestSolution& curr_best, RTResult& cur
 
 		iter++;
 		if(iter - best_iter > 1 && best_cost < last_vidal_cost){
-			std::map<int, CarpInstance> lastCarpMap;
-			for(int t = 0; t < inst.horizon; t++)
-				lastCarpMap[t] = CarpInstance();
+			std::map<int, std::set<int>> lastCarpMap;
+			// for(int t = 0; t < inst.horizon; t++)
+				// lastCarpMap[t] = CarpInstance();
 
 			for(int t = 0; t < inst.horizon; ++t)
 				for(auto& l: curr_best.req_link_visited[t])
-					lastCarpMap[t].link_to_visit.insert(l);
+					// lastCarpMap[t].link_to_visit.insert(l);
+					lastCarpMap[t].insert(l);
 
 			auto last_vidal_res = solve_route_vidal(inst, lastCarpMap, args.vidal_iterlimit, args.multi);
 			vidal_time += last_vidal_res.time;
