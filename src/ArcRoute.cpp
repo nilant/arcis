@@ -42,7 +42,6 @@ ArcRoute::ArcRoute(Instance const& inst, ArcRoute const& other, int start, int e
 
 	std::copy(other.full_path.begin() + start, other.full_path.begin() + (end + 1), std::back_inserter(full_path));
 	for(auto const [i, j]: full_path){
-		// if(inst.required(i,j)){
 		if(inst.t_l_matrix(period, inst.id(i, j))){
 			links(inst.id(i, j)) = true;
 			residual_capacity -= inst.demand(i, j);

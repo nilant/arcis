@@ -34,9 +34,9 @@ class mdarray {
         explicit mdarray(I ... i) : _shape{static_cast<size_type>(i) ...} {
             static_assert(sizeof...(I) == N, "wrong number of dimensions");
             size_type data_size = 1;
-            for (size_type i = _shape.size(); i != 0; i--) {
-                _strides[i-1] = data_size;
-                data_size = _strides[i-1] * _shape[i-1];
+            for (size_type size = _shape.size(); size != 0; size--) {
+                _strides[size-1] = data_size;
+                data_size = _strides[size-1] * _shape[size-1];
             }
 
             _size = data_size;

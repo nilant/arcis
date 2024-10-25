@@ -6,33 +6,35 @@
 #include "utils.hpp"
 
 
-Instance::Instance(int nvertices, int nreq_links, int nsubperiods, int horizon, int nlinks) : required{nvertices, nvertices},
-                                                                     type{nvertices, nvertices}, 
-                                                                     id{nvertices, nvertices},
-                                                                     serv_cost{nvertices, nvertices},
-                                                                     trav_cost{nvertices, nvertices},
-                                                                     demand{nvertices, nvertices},
-                                                                     dist{nvertices, nvertices},
-                                                                     prev{nvertices, nvertices},
-                                                                     frequencies{nreq_links, nsubperiods}, 
-                                                                     sp_matrix{nsubperiods, horizon},
-																	 t_l_matrix{horizon, nlinks}
-																	 {
+Instance::Instance(int nvertices, int nreq_links, int nsubperiods, int horizon, int nlinks) : required{
+        nvertices, nvertices
+    },
+    type{nvertices, nvertices},
+    id{nvertices, nvertices},
+    serv_cost{nvertices, nvertices},
+    trav_cost{nvertices, nvertices},
+    demand{nvertices, nvertices},
+    dist{nvertices, nvertices},
+    prev{nvertices, nvertices},
+    frequencies{nreq_links, nsubperiods},
+    sp_matrix{nsubperiods, horizon},
+    t_l_matrix{horizon, nlinks}
+{
+}
 
-    
-} 
 
-
-Instance read_json(fs::path input_path) {
-
+Instance read_json(fs::path input_path)
+{
     std::ifstream file(input_path);
     json j = json::parse(file)["instance"];
-    
+
     std::vector<std::vector<int>> subperiods;
-    for (auto const& jsubs : j["subperiods"]) {
+    for(auto const& jsubs : j["subperiods"])
+    {
         subperiods.push_back(std::vector<int>());
-        for (auto day : jsubs) {
-            subperiods[subperiods.size()-1].push_back(day);
+        for(auto day : jsubs)
+        {
+            subperiods[subperiods.size() - 1].push_back(day);
         }
     }
     int nsubperiods = subperiods.size();
@@ -41,8 +43,8 @@ Instance read_json(fs::path input_path) {
     int nvertices = j["nvertices"];
     int nreq_links = j["nreq_links"];
     int nnot_req_links = j["nnot_req_links"];
-	int nlinks = nreq_links + nnot_req_links;
-	int horizon = j["horizon"];
+    int nlinks = nreq_links + nnot_req_links;
+    int horizon = j["horizon"];
 
 
     Instance inst(nvertices, nreq_links, nsubperiods, horizon, nlinks);
@@ -62,14 +64,18 @@ Instance read_json(fs::path input_path) {
     // inst.nvehicles = 1;
     inst.capacity = -1; // inst.nlinks;
 
-    for (int s = 0; s < inst.nsubperiods; ++s) {
-        for (int const t : subperiods[s]) {
+    for(int s = 0; s < inst.nsubperiods; ++s)
+    {
+        for(int const t : subperiods[s])
+        {
             inst.sp_matrix(s, t) = true;
         }
     }
 
-    for (int i = 0; i < nvertices; ++i) {
-        for (int jj = 0; jj < nvertices; ++jj) {
+    for(int i = 0; i < nvertices; ++i)
+    {
+        for(int jj = 0; jj < nvertices; ++jj)
+        {
             inst.required(i, jj) = false;
             inst.type(i, jj) = NONE;
             inst.id(i, jj) = -1;
@@ -81,44 +87,51 @@ Instance read_json(fs::path input_path) {
 
     inst.links.reserve(inst.nlinks);
     int i = 0;
-    for (auto const& jreq_link : j["required_links"]) {
+    for(auto const& jreq_link : j["required_links"])
+    {
         int u = static_cast<int>(jreq_link["from_node"]) - 1;
         int v = static_cast<int>(jreq_link["to_node"]) - 1;
         inst.links.push_back({u, v});
         auto t = jreq_link["type"] == "edge" ? EDGE : ARC;
-        if (t == EDGE) {
+        if(t == EDGE)
+        {
             inst.type(v, u) = t;
             inst.id(v, u) = i;
             inst.trav_cost(v, u) = jreq_link["trav_cost"];
             inst.serv_cost(v, u) = jreq_link["serv_cost"];
             inst.required(v, u) = true;
-
         }
         inst.type(u, v) = t;
         inst.id(u, v) = i;
         inst.trav_cost(u, v) = jreq_link["trav_cost"];
         inst.serv_cost(u, v) = jreq_link["serv_cost"];
         inst.required(u, v) = true;
-        for (int f = 0; f < nsubperiods; ++f) {
+        for(int f = 0; f < nsubperiods; ++f)
+        {
             inst.frequencies(i, f) = jreq_link["frequencies"][f];
         }
         i++;
     }
 
-	for (int s = 0; s < inst.nsubperiods; ++s) {
-		for (int const t : subperiods[s]){
-			for(int l = 0; l < inst.nreq_links; l++){
-				inst.t_l_matrix(t, l) = 1;
-			}
-		}
-	}
+    for(int s = 0; s < inst.nsubperiods; ++s)
+    {
+        for(int const t : subperiods[s])
+        {
+            for(int l = 0; l < inst.nreq_links; l++)
+            {
+                inst.t_l_matrix(t, l) = 1;
+            }
+        }
+    }
 
-    for (auto const& jnot_req_link : j["not_required_links"]) {
+    for(auto const& jnot_req_link : j["not_required_links"])
+    {
         int u = static_cast<int>(jnot_req_link["from_node"]) - 1;
         int v = static_cast<int>(jnot_req_link["to_node"]) - 1;
         inst.links.push_back({u, v});
         auto t = jnot_req_link["type"] == "edge" ? EDGE : ARC;
-        if (t == EDGE) {
+        if(t == EDGE)
+        {
             inst.type(v, u) = t;
             inst.id(v, u) = i;
             inst.trav_cost(v, u) = jnot_req_link["trav_cost"];
@@ -134,27 +147,75 @@ Instance read_json(fs::path input_path) {
     return inst;
 }
 
-void Instance::generateRandomDemand(){
+void Instance::generateRandomDemand()
+{
+    std::hash<std::string> hash_fn;
+    RandomGenerator rand_gen(static_cast<int>(hash_fn(name)));
+    int tot_dem = 0;
+    for(auto const& [u, v] : links)
+    {
+        if(required(u, v))
+        {
+            int rand_d = rand_gen.getRandomInt(99) + 1;
+            auto t = type(u, v);
+            if(t == EDGE)
+                demand(v, u) = rand_d;
+            demand(u, v) = rand_d;
+            int link_id = id(u, v);
+            for(int s = 0; s < nsubperiods; ++s)
+            {
+                if(frequencies(link_id, s) > 0)
+                    tot_dem += rand_d * frequencies(link_id, s);
+            }
+        }
+    }
 
-	RandomGenerator rand_gen{};
-	int tot_dem = 0;
-	for (auto const& [u, v] : links) {
-		if(required(u, v)){
-			int rand_d = rand_gen.getRandomInt(999) + 1;
-			auto t = type(u, v);
-			if(t == EDGE)
-				demand(v, u) = rand_d;
-			demand(u, v) = rand_d;
-			int link_id = id(u, v);
-			for(int s = 0; s < nsubperiods; ++s){
-				if(frequencies(link_id, s) > 0)
-					tot_dem += rand_d*frequencies(link_id, s);
-			}
+    std::cout << "tot_dem: " << tot_dem << std::endl;
 
-		}
-	}
+    capacity = tot_dem / (horizon);
+}
 
-	std::cout << "tot_dem: " << tot_dem << std::endl;
-
-	capacity = tot_dem/(horizon);
+void Instance::writeInstanceFile()
+{
+    std::ofstream fout;
+    fout.open("cap_instances/cap_" + name +".txt");
+    fout << "horizon: " << horizon << std::endl;
+    fout << "nsubperiods: " << nsubperiods << std::endl;
+    int count = 0;
+    for(const auto& sub : subperiods)
+    {
+        fout << count << ": ";
+        for(auto t : sub)
+            fout << t << " ";
+        fout << std::endl;
+        count++;
+    }
+    fout << "nvertices: " << nvertices << std::endl;
+    fout << "nreq_links: " << nreq_links << std::endl;
+    fout << "nnot_req_links: " << nnot_req_links << std::endl;
+    count = 0;
+    for(auto l : links)
+    {
+        fout << "(" << l.first << "," << l.second << ")";
+        if(type(l.first, l.second) == EDGE)
+            fout << " edge ";
+        else
+            fout << " arc ";
+        if(count < nreq_links)
+        {
+            fout << "serv_cost " << serv_cost(l.first, l.second) << " trav_cost " << trav_cost(l.first, l.second)
+                << " demand " << demand(l.first, l.second) << " freq: ";
+            for(auto sub = 0; sub < nsubperiods; ++sub)
+            {
+                if(frequencies(count, sub) > 0)
+                    fout << sub << " " << frequencies(count, sub) << " ";
+            }
+        }
+        else
+        {
+            fout << "trav_cost " << trav_cost(l.first, l.second);
+        }
+        fout << std::endl;
+        count++;
+    }
 }

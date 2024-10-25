@@ -43,6 +43,7 @@ struct Instance {
     mdarray<int, 2> prev;
 
 	void generateRandomDemand();
+	void writeInstanceFile();
 
     explicit Instance(int nvertices, int nreq_links, int nsubperiods, int horizon, int nlinks);
 };

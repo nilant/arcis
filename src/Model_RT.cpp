@@ -209,9 +209,10 @@ RTResult RTModel::optimize(std::vector<ArcRoute> const& routes, Instance const& 
 			model.computeIIS();
 			model.write("model.ilp");
 			throw std::runtime_error("No feasible solution found\n");
-		}else if(nsol > 0){
+		}
+		if(nsol > 0){
 			cost = std::lrint(model.get(GRB_DoubleAttr_ObjVal));
-			if(multi){
+			/*if(multi){
 				for(int sol = 0; sol < nsol; sol++){
 					model.set(GRB_IntParam_SolutionNumber, sol);
 					bool isFeasible = check_feasibility(routes, inst);
@@ -221,11 +222,10 @@ RTResult RTModel::optimize(std::vector<ArcRoute> const& routes, Instance const& 
 					else
 						std::cout << " is feasible!" << std::endl;
 				}
-			}
+			}*/
 		}else{
 			throw std::runtime_error("No solution found\n");
 		}
-
 	}catch(GRBException& e){
 		fmt::print("Error code={}\n", e.getErrorCode());
 		fmt::print("Error message={}\n", e.getMessage());

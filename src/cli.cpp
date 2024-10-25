@@ -13,5 +13,5 @@ Args::Args(int argc, char* argv[]) {
     cmdl("--memlimit", 0) >> memlimit;
     cmdl("--threads", 1) >> threads;
     cmdl("--seed", 0) >> seed;
-	cmdl("--multi", 0) >> multi;
+	cmdl("--multi", 1) >> multi;
 }

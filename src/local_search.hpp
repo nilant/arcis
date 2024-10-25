@@ -11,6 +11,7 @@ struct RandomGenerator {
 
 	// Costruttore
 	RandomGenerator() : gen(0), distrib01(0.0, 1.0), distribInt(0.0, std::numeric_limits<int>::max()) {}
+	explicit RandomGenerator(int seed) : gen(seed), distrib01(0.0, 1.0), distribInt(0.0, std::numeric_limits<int>::max()) {}
 
 	// Metodo per generare un numero casuale tra 0 e max
 	int getRandomInt(int max) {

@@ -171,12 +171,8 @@ local_search(GRBEnv& env, Instance& inst, BestSolution& curr_best, RTResult& cur
 		iter++;
 		if(iter - best_iter > 1 && best_cost < last_vidal_cost){
 			std::map<int, std::set<int>> lastCarpMap;
-			// for(int t = 0; t < inst.horizon; t++)
-				// lastCarpMap[t] = CarpInstance();
-
 			for(int t = 0; t < inst.horizon; ++t)
 				for(auto& l: curr_best.req_link_visited[t])
-					// lastCarpMap[t].link_to_visit.insert(l);
 					lastCarpMap[t].insert(l);
 
 			auto last_vidal_res = solve_route_vidal(inst, lastCarpMap, args.vidal_iterlimit, args.multi);
@@ -200,10 +196,8 @@ local_search(GRBEnv& env, Instance& inst, BestSolution& curr_best, RTResult& cur
 			}
 			fmt::print("curr_best_after_vidal={}\n", best_cost);
 		}
-		///////////// should be ok, but must be tested! ///////////////////////
 		else if(best_cost == last_vidal_cost)
 			break;
-		///////////////////////////////////////////////////////////////////////
 	}
 	curr_best.iter = best_iter;
 	return {iter_ls_time, iter};
