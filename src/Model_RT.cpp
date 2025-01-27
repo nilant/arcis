@@ -35,7 +35,7 @@ RTResult::RTResult(mdarray<GRBVar, 2> const& y, mdarray<GRBVar, 2> const& x,
 	time = runtime;
 }
 
-RTModel::RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const& routes, int multi) : model{env},
+RTModel::RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const& routes) : model{env},
                                                                                            x{inst.nreq_links,
                                                                                              inst.horizon},
                                                                                            y{routes.size(),
@@ -96,50 +96,6 @@ RTModel::RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const&
 			}
 		}
 
-		/*if(multi){
-			for(int r = 0; r <routes.size(); r++){
-				int t = routes[r].period;
-				int bigM = 0;
-				for(int l = 0; l < inst.nreq_links; ++l){
-					if(routes[r].contains(l)){
-						expr += inst.demand(inst.links[l].first, inst.links[l].second)*x(l,t);
-						bigM += inst.demand(inst.links[l].first, inst.links[l].second);
-					}
-				}
-				for(int rr = 0; rr <routes.size(); rr++){
-					int tt = routes[rr].period;
-					if(t == tt){
-						for(int l = 0; l < inst.nreq_links; ++l){
-							if(routes[r].contains(l) && routes[rr].contains(l)){
-								expr -= std::min(inst.capacity, bigM)*y(rr,t);
-								break;
-							}
-						}
-					}
-				}
-				model.addConstr(expr <= 0, fmt::format("r_capacity_{}_{}", r, t));
-				expr.clear();
-			}
-			std::vector<GRBLinExpr> vec_expr(inst.horizon);
-			for(int r = 0; r < routes.size(); ++r){
-				int t = routes[r].period;
-				vec_expr[t] -= inst.capacity*y(r, t);
-			}
-			for(int t = 0; t < inst.horizon; ++t){
-				for(int l = 0; l < inst.nreq_links; ++l){
-					if(inst.t_l_matrix(t, l)){
-						int u = inst.links[l].first;
-						int v = inst.links[l].second;
-						vec_expr[t] += inst.demand(u, v)*x(l, t);
-						expr += inst.demand(u, v)*x(l, t);
-					}
-				}
-				model.addConstr(vec_expr[t] <= 0, fmt::format("capacity_{}", t));
-				expr.clear();
-			}
-		}*/
-		// model.update();
-
 	}catch(GRBException& e){
 		fmt::print("Error code={}\n", e.getErrorCode());
 		fmt::print("Error message={}\n", e.getMessage());
@@ -193,7 +149,7 @@ bool RTModel::check_feasibility(std::vector<ArcRoute> const& routes, Instance co
 	return true;
 }
 
-RTResult RTModel::optimize(std::vector<ArcRoute> const& routes, Instance const& inst, int multi){
+RTResult RTModel::optimize(std::vector<ArcRoute> const& routes){
 
 	int cost{-1};
 	try{
@@ -212,17 +168,6 @@ RTResult RTModel::optimize(std::vector<ArcRoute> const& routes, Instance const& 
 		}
 		if(nsol > 0){
 			cost = std::lrint(model.get(GRB_DoubleAttr_ObjVal));
-			/*if(multi){
-				for(int sol = 0; sol < nsol; sol++){
-					model.set(GRB_IntParam_SolutionNumber, sol);
-					bool isFeasible = check_feasibility(routes, inst);
-					std::cout << "solution " << sol;
-					if(!isFeasible)
-						std::cout << " is not feasible!" << std::endl;
-					else
-						std::cout << " is feasible!" << std::endl;
-				}
-			}*/
 		}else{
 			throw std::runtime_error("No solution found\n");
 		}

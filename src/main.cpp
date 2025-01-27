@@ -18,10 +18,8 @@ int main(int argc, char* argv[]) {
 
     Instance inst = read_json(args.input_file);
 	inst.generateRandomDemand();
-    inst.writeInstanceFile();
-    exit(1);
-
-
+    // inst.writeInstanceFile();
+    // exit(1);
 
 	// args.timelimit = inst.tot_services;
     
@@ -33,6 +31,7 @@ int main(int argc, char* argv[]) {
 
     result.print();
     result.write_json(args.input_file);
+
 
     return 0;
 }

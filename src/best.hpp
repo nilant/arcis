@@ -15,4 +15,6 @@ struct BestSolution {
 
     BestSolution() = default;
     BestSolution(Instance const& inst, std::vector<ArcRoute> const& routes, RTResult const& rt_res);
+
+    void writeFile(Instance const& inst, bool multi);
 };

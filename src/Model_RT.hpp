@@ -29,17 +29,7 @@ struct RTModel {
 	mdarray<GRBVar, 2> x;
     Timer timer{};
 
-    RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const& routes, int multi);
-    RTResult optimize(std::vector<ArcRoute> const& routes, Instance const& inst, int multi);
+    RTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const& routes);
+    RTResult optimize(std::vector<ArcRoute> const& routes);
 	bool check_feasibility(std::vector<ArcRoute> const& routes, Instance const& inst);
-};
-
-struct mRTModel {
-	GRBModel model;
-	mdarray<GRBVar, 2> y;
-	mdarray<GRBVar, 3> x;
-	Timer timer{};
-
-	mRTModel(GRBEnv& env, Instance const& inst, std::vector<ArcRoute> const& routes);
-	RTResult optimize(std::vector<ArcRoute> const& routes);
 };

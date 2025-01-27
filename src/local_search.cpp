@@ -64,7 +64,7 @@ std::vector<ArcRoute> generate_new_routes(Instance& inst, const BestSolution& be
 						new_routes.insert(new_routes.end(), r1.begin(), r1.end());
 						prevNewRouteCost = new_route1.cost;
 					}
-					if((toIndexSize >= 2 && multi == 2) || toIndexSize >= 10)
+					if((toIndexSize >= 2 && multi == 2) || toIndexSize >= 20)
 						break;
 				}
 
@@ -139,24 +139,15 @@ local_search(GRBEnv& env, Instance& inst, BestSolution& curr_best, RTResult& cur
 
 	int iter = 1;
 	int best_iter = 0;
-	double last_vidal_cost = curr_best.cost;
 	while(iter - best_iter <= 1){
 
 		timer.start("local");
 		auto new_routes = generate_new_routes(inst, curr_best, args.multi);
 		fmt::print("{} new routes generated. \n", new_routes.size());
-		if(args.multi > 1){
-			mRTModel rt_model{env, inst, new_routes};
-			timer.stop("local");
-			iter_ls_time += timer.duration("local");
-			curr_rt_res = rt_model.optimize(new_routes);
-		}
-		else{
-			RTModel rt_model{env, inst, new_routes, args.multi};
-			timer.stop("local");
-			iter_ls_time += timer.duration("local");
-			curr_rt_res = rt_model.optimize(new_routes, inst, args.multi);
-		}
+		RTModel rt_model{env, inst, new_routes};
+		timer.stop("local");
+		iter_ls_time += timer.duration("local");
+		curr_rt_res = rt_model.optimize(new_routes);
 		gurobi_time += curr_rt_res.time;
 		fmt::print("gurobi time={}\n", curr_rt_res.time);
 
@@ -167,37 +158,7 @@ local_search(GRBEnv& env, Instance& inst, BestSolution& curr_best, RTResult& cur
 		}
 
 		fmt::print("curr_iter={}, curr_best={}\n", iter, best_cost);
-
 		iter++;
-		if(iter - best_iter > 1 && best_cost < last_vidal_cost){
-			std::map<int, std::set<int>> lastCarpMap;
-			for(int t = 0; t < inst.horizon; ++t)
-				for(auto& l: curr_best.req_link_visited[t])
-					lastCarpMap[t].insert(l);
-
-			auto last_vidal_res = solve_route_vidal(inst, lastCarpMap, args.vidal_iterlimit, args.multi);
-			vidal_time += last_vidal_res.time;
-			std::vector<ArcRoute> last_routes;
-			last_routes.insert(last_routes.end(), last_vidal_res.all_routes.begin(), last_vidal_res.all_routes.end());
-			RTResult last_rt_res;
-			if(args.multi > 1){
-				mRTModel last_rt_model{env, inst, last_routes};
-				last_rt_res = last_rt_model.optimize(last_routes);
-			}
-			else{
-				RTModel last_rt_model{env, inst, last_routes, args.multi};
-				last_rt_res = last_rt_model.optimize(last_routes, inst, args.multi);
-			}
-			curr_best = BestSolution(inst, last_routes, last_rt_res);
-			last_vidal_cost = curr_best.cost;
-			if(curr_best.cost < best_cost){
-				best_cost = curr_best.cost;
-				best_iter = iter;
-			}
-			fmt::print("curr_best_after_vidal={}\n", best_cost);
-		}
-		else if(best_cost == last_vidal_cost)
-			break;
 	}
 	curr_best.iter = best_iter;
 	return {iter_ls_time, iter};

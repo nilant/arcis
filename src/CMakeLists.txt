@@ -19,7 +19,7 @@ add_executable(arcis main.cpp
                 ../libs/vidal/Params.cpp
                 ../libs/vidal/Vehicle.cpp
                 ../libs/vidal/Individu.cpp
-        Model_mRT.cpp)
+)
 
 target_include_directories(arcis PUBLIC ${GUROBI_INCLUDE_DIRS})
 target_link_libraries(arcis PUBLIC ${GUROBI_CPP_LIBRARY} ${GUROBI_LIBRARY} fmt::fmt -pthread)

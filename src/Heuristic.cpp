@@ -36,6 +36,7 @@ Result heur(Instance& inst, Args const& args){
 
 	std::vector<ArcRoute> all_routes;
 
+	BestSolution best;
 	int restart = 0;
 	double best_cost = std::numeric_limits<double>::max();
 	double total_time = 0;
@@ -51,23 +52,15 @@ Result heur(Instance& inst, Args const& args){
 		total_result.vidal_time += vidal_res.time;
 
 		all_routes.insert(all_routes.end(), vidal_res.all_routes.begin(), vidal_res.all_routes.end());
-
-		RTResult rt_res; // ((int) all_routes.size(), inst.horizon, inst.nreq_links, inst.horizon);
-		if(args.multi > 1){
-			mRTModel rt_model{env, inst, all_routes};
-			rt_res = rt_model.optimize(all_routes);
-		}
-		else{
-			RTModel rt_model{env, inst, all_routes, args.multi};
-			rt_res = rt_model.optimize(all_routes, inst, args.multi);
-		}
+		RTModel rt_model{env, inst, all_routes};
+		RTResult rt_res = rt_model.optimize(all_routes);
 		double rt_start_cost = rt_res.cost;
 		total_result.gurobi_time += rt_res.time;
 		fmt::print("vidal_cost={}, rt_start_cost={}, gurobi_time={}\n", vidal_res.cost, rt_start_cost, rt_res.time);
 		fmt::print("starting local search...\n");
 		std::cout << std::endl;
 
-		auto best = BestSolution(inst, all_routes, rt_res);
+		best = BestSolution(inst, all_routes, rt_res);
 		auto [ls_time, ls_iter] = local_search(env, inst, best, rt_res, total_result.gurobi_time,
 		                                       total_result.vidal_time, args);
 		total_result.ls_iter += ls_iter;
@@ -101,6 +94,7 @@ Result heur(Instance& inst, Args const& args){
 
 	timer.stop("total");
 	total_result.total_time = timer.duration("total");
+	best.writeFile(inst, args.multi);
 
 	return total_result;
 }

@@ -7,11 +7,11 @@ Args::Args(int argc, char* argv[]) {
     cmdl.parse(argc, argv, argh::parser::SINGLE_DASH_IS_MULTIFLAG);
 
     input_file = fs::path(cmdl[1]);
-    cmdl("--timelimit", 1800) >> timelimit;
+    cmdl("--timelimit", 300) >> timelimit;
     cmdl("--vidal_iterlimit", 1000) >> vidal_iterlimit;
     cmdl("--mls_iterlimit", 50) >> mls_iterlimit;
     cmdl("--memlimit", 0) >> memlimit;
     cmdl("--threads", 1) >> threads;
     cmdl("--seed", 0) >> seed;
-	cmdl("--multi", 1) >> multi;
+	cmdl("--multi", 0) >> multi;
 }
